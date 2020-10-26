@@ -1,0 +1,43 @@
+name: Compile use cases from github issues
+on:
+  workflow_dispatch:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  use_cases:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+
+    - name: Install deps
+      run: sudo apt-get install -y make wkhtmltopdf xvfb
+
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up Go 1.14
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.14'
+
+    - name: Make html and pdf docs
+      run: |
+        HTML2PDF="xvfb-run wkhtmltopdf" make -C docs/usecase use_cases.pdf
+
+    - name: Upload pdf
+      uses: actions/upload-artifact@v2
+      with:
+        name: use_cases.pdf
+        path: docs/usecase/use_cases.pdf
+
+    - name: Upload html
+      uses: actions/upload-artifact@v2
+      with:
+        name: use_cases.html
+        path: docs/usecase/use_cases.html
+
