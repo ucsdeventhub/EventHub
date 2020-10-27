@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
+	"html/template"
+	"io/ioutil"
+	"log"
 	"os"
-	"path"
 	"regexp"
 	"sort"
 	"strconv"
@@ -14,34 +18,127 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/google/go-github/v32/github"
+	markdown "github.com/shurcooL/github_flavored_markdown"
 )
 
-var token = flag.String("token", "", "github auth token")
-var dir = flag.String("dir", "", "output directory")
+var flagToken = flag.String("token", "", "github auth token")
+var flagTokenEnv = flag.String("tokenEnv", "", "environment var for github auth token")
+var flagTmpl = flag.String("tmpl", "", "template file")
+var flagLogo = flag.String("logo", "", "logo file")
+
+type UseCaseDoc struct {
+	Intro    string
+	Logo template.HTML
+	UseCases []*UseCase
+}
+
+func (doc *UseCaseDoc) FromIssues(issues []*github.Issue) *UseCaseDoc {
+	doc.Intro = "hello!!"
+	doc.UseCases = make([]*UseCase, len(issues))
+	for i, v := range issues {
+		doc.UseCases[i] = new(UseCase).FromIssue(v)
+	}
+
+	return doc
+}
+
+type UseCase struct {
+	Title,
+	Number string
+	Labels []*github.Label
+	Sections map[string]template.HTML
+}
+
+func (uc *UseCase) FromIssue(issue *github.Issue) *UseCase {
+	uc.Title = strings.Title(
+		strings.TrimSpace(
+			strings.Replace(*issue.Title, "use case:", "", -1)))
+	uc.Number = strconv.Itoa(*issue.Number)
+
+	uc.Labels = make([]*github.Label, 0, len(issue.Labels) -1)
+	for _, v := range issue.Labels {
+		if *v.Name != "use case" {
+			uc.Labels = append(uc.Labels, v)
+		}
+	}
+
+	validSections := []string{
+		"Description", "User Goal", "Desired Outcome", "Actor",
+		"Dependent Use Cases", "Requirements", "Pre-Conditions",
+		"Post-Conditions", "Trigger", "Workflow", "Alternative Workflow",
+	}
+
+	uc.Sections = make(map[string]template.HTML)
+	section := ""
+	lines := bufio.NewScanner(strings.NewReader(*issue.Body))
+ScanLoop:
+	for lines.Scan() {
+		line := bytes.TrimSpace(lines.Bytes())
+
+		if bytes.HasPrefix(line, []byte("##")) {
+			sectionName := bytes.Title(
+				bytes.TrimSpace(
+					bytes.Replace(line, []byte("##"), nil, -1)))
+			for _, v := range validSections {
+				if string(sectionName) == v {
+					section = string(sectionName)
+					continue ScanLoop
+				}
+			}
+
+			section = ""
+			log.Printf("unknown section name: %s", sectionName)
+		} else if section != "" {
+			uc.Sections[section] = uc.Sections[section] +
+				template.HTML("\n") +
+				template.HTML(line)
+		}
+	}
+
+	for k, v := range uc.Sections {
+		uc.Sections[k] = template.HTML(
+			markdown.Markdown(
+				githubIssueLinks([]byte(v))))
+	}
+
+	for _, v := range validSections {
+		_, ok := uc.Sections[v]
+
+		if !ok {
+			log.Printf("missing section %v for %v",
+				v, uc.Title)
+		}
+	}
+
+	return uc
+}
 
 func main() {
 	flag.Parse()
+	log.SetOutput(os.Stderr)
 
-	if len(*token) == 0 {
+	if len(*flagToken) == 0 && len(*flagTokenEnv) == 0 {
 		fmt.Fprintln(os.Stderr, "token not provided")
 		flag.Usage()
 		os.Exit(1)
 	}
 
-	if len(*dir) != 0 {
-		err := os.MkdirAll(*dir, 0755)
-		if err != nil {
-			panic(err)
-		}
+	if len(*flagTmpl) == 0 {
+		fmt.Fprintln(os.Stderr, "tmpl not provided")
+		flag.Usage()
+		os.Exit(1)
 	}
 
-
 	ctx := context.Background()
+
+	if len(*flagToken) == 0 {
+		*flagToken = os.Getenv(*flagTokenEnv)
+	}
 
 	client := github.NewClient(
 		oauth2.NewClient(ctx,
 			oauth2.StaticTokenSource(
-				&oauth2.Token{AccessToken: *token})))
+				&oauth2.Token{AccessToken: *flagToken})))
 
 	issues, _, err := client.Issues.ListByRepo(context.Background(),
 		"ucsdeventhub",
@@ -55,131 +152,41 @@ func main() {
 		return *issues[i].Number < *issues[j].Number
 	})
 
-	if err != nil {
-		panic(err)
+	log.Println(new(UseCase).FromIssue(issues[0]))
+	doc := new(UseCaseDoc).FromIssues(issues)
+
+	{
+		byt, err := ioutil.ReadFile(*flagLogo)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		doc.Logo = template.HTML(byt)
 	}
 
-	anchors := table(issues)
+	byt, err := ioutil.ReadFile(*flagTmpl)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	for _, v := range issues {
-		f := os.Stdout
-		if len(*dir) != 0 {
-			fname := path.Join(*dir, strconv.Itoa(*v.Number)+".md")
-			f, err = os.OpenFile(fname,
-				os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-				0644)
-			if err != nil {
-				panic(err)
-			}
-		}
+	tmpl, err := template.New("use-case-documents").Parse(string(byt))
+	if err != nil {
+		log.Fatal(err)
+	}
 
-
-		fmt.Fprintf(f,
-			useCaseTitle(v)+
-			"\n\n")
-
-		body := githubIssueLinks(anchors, *v.Body)
-
-		fmt.Fprintln(f, body)
-		fmt.Fprint(f,
-			"\n\n"+
-			`<hr>`+
-			"\n\n"+
-			`<div style="page-break-after: always;"></div>`+
-			"\n\n")
-
-		if len(*dir) != 0 {
-			f.Sync()
-			f.Close()
-		}
+	err = tmpl.Execute(os.Stdout, doc)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
-
 
 var githubIssueLinksRegex = regexp.MustCompile("#[0-9]+")
 
-func githubIssueLinks(anchors map[int]string, body string) string {
-	body = strings.Replace(body, "\x0d", "", -1)
-	return githubIssueLinksRegex.ReplaceAllStringFunc(body,
-		func(in string) string {
-			number, _ := strconv.Atoi(in[1:])
-			if number == 0 {
-				return in
-			}
+func githubIssueLinks(body []byte) []byte {
+	return githubIssueLinksRegex.ReplaceAllFunc(body,
+		func(in []byte) []byte {
+			number := in[1:]
 
-			return fmt.Sprintf(`<a href="#%s">%s</a>`,
-				anchors[number],
-				in)
+			return []byte(fmt.Sprintf(`<a href="#%s">#%s</a>`, number, number))
 		})
-}
-
-func useCaseName(v *github.Issue) string {
-	title := strings.Replace(*v.Title, "use case:", "", -1)
-	title = strings.Title(strings.TrimSpace(title))
-
-	return fmt.Sprintf(`<code>#%d</code> %s`,
-		*v.Number,
-		title)
-}
-
-func useCaseAnchor(v *github.Issue) string {
-	name := strings.Replace(*v.Title, "use case:", "", -1)
-	name = strings.Title(strings.TrimSpace(name))
-	name = strings.ToLower(name)
-	return strings.Replace(name, " ", "-", -1)
-}
-
-func useCaseTitle(v *github.Issue) string {
-	return fmt.Sprintf(`<h1><a name="%s">%s</a></h1>`,
-		useCaseAnchor(v),
-		useCaseName(v))
-}
-
-func table(issues []*github.Issue) map[int]string {
-	anchors := make(map[int]string)
-
-	f := os.Stdout
-	if len(*dir) != 0 {
-		fname := path.Join(*dir, "toc.md")
-		var err error
-		f, err = os.OpenFile(fname,
-			os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-			0644)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	fmt.Fprint(f,
-		`<h1>Table of Contents</h1>`+
-		"\n"+
-		`<ul>`+
-		"\n\n")
-
-	for _, v := range issues {
-		anchors[*v.Number] = useCaseAnchor(v)
-
-		fmt.Fprintf(f,
-			`<li><a href="#%s">%s</a></li>`+"\n",
-			useCaseAnchor(v),
-			useCaseName(v))
-	}
-
-	fmt.Fprint(f,
-		`</ul>`+
-		"\n\n")
-
-	fmt.Fprint(f,
-		"\n\n"+
-		`<hr>`+
-		"\n\n"+
-		`<div style="page-break-after: always;"></div>`+
-		"\n\n")
-
-	if len(*dir) != 0 {
-		f.Sync()
-		f.Close()
-	}
-
-	return anchors
 }

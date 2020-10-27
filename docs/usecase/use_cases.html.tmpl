@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>EventHub Use Cases </title>
+	<style>
+h1 {
+	page-break-before: always;
+}
+
+.label {
+	display: inline-block;
+	padding: 0 7px;
+	border-radius: 10px;
+}
+
+	</style>
+</head>
+<body>
+
+	<div style="text-align: center;">
+		<h1>EventHub</h1>
+		{{ .Logo }}
+		<ul style="list-style: none;">
+			<li>Adam - Architecture</li>
+			<li>Angela - Business analyst</li>
+			<li>Anthony - Software development lead</li>
+			<li>Ben - Quality Assurance</li>
+			<li>Dominic - Database Specialist</li>
+			<li>Eric - Software development lead</li>
+			<li>Julio - Project Manager</li>
+			<li>Kartik - User interface</li>
+			<li>Matthew - Algorithms specialist</li>
+			<li>Sam - Systems analyst</li>
+			<li>Tanvi - User interface</li>
+		</ul>
+
+		<h2>CSE 110 - Fall 2020</h2>
+	</div>
+
+	<h1>Table Of Contents</h1>
+	<ol>
+	{{ range .UseCases }}
+		<li value="{{ .Number }}">
+			<a href="{{ .Number }}">{{ .Title }}</a>
+			{{ range .Labels }}
+				<span class="label" style="background-color: #{{ .Color }};">
+					{{ .Name }}
+				</span>
+			{{ end }}
+		</li>
+	{{ end }}
+	</ol>
+
+	<h1>Intro</h1>
+	<h2>TODO: REMOVE THIS PAGE OR MOVE THE ESSAY TO GITHUB</h2>
+
+	{{ range .UseCases }}
+		<h1>
+			<a name="{{ .Number }}">{{ .Title }}</a>
+			{{ range .Labels }}
+				<span class="label" style="background-color: #{{ .Color }};">
+					{{ .Name }}
+				</span>
+			{{ end }}
+		</h1>
+
+		{{ range $sectionName, $body := .Sections }}
+
+			<h2>{{ $sectionName }}</h2>
+
+			{{ $body }} <!-- the body is already rendered from markdown -->
+
+		{{ end }}
+	{{ end }}
+</body>
+</html>
