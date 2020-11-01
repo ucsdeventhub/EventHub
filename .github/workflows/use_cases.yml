@@ -27,17 +27,16 @@ jobs:
 
     - name: Make html and pdf docs
       run: |
-        HTML2PDF="xvfb-run wkhtmltopdf" make -C docs/usecase use_cases.pdf
+        HTML2PDF="xvfb-run wkhtmltopdf" make -C docs/usecase all
 
     - name: Upload pdf
       uses: actions/upload-artifact@v2
       with:
-        name: use_cases.pdf
-        path: docs/usecase/use_cases.pdf
+        name: documents
+        path: |
+          docs/usecase/use_cases.pdf
+          docs/usecase/use_cases.html
+          docs/usecase/requirements.pdf
+          docs/usecase/requirements.html
 
-    - name: Upload html
-      uses: actions/upload-artifact@v2
-      with:
-        name: use_cases.html
-        path: docs/usecase/use_cases.html
 

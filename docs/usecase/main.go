@@ -22,7 +22,7 @@ import (
 )
 
 var flagToken = flag.String("token", "", "github auth token")
-var flagTokenEnv = flag.String("tokenEnv", "", "environment var for github auth token")
+var flagTokenEnv = flag.String("tokenEnv", "", "environment var for github auth token, takes precedence over -token")
 var flagTmpl = flag.String("tmpl", "", "template file")
 var flagLogo = flag.String("logo", "", "logo file")
 
@@ -117,7 +117,11 @@ func main() {
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
-	if len(*flagToken) == 0 && len(*flagTokenEnv) == 0 {
+	if len(*flagTokenEnv) != 0 {
+		*flagToken = os.Getenv(*flagTokenEnv)
+	}
+
+	if len(*flagToken) == 0 {
 		fmt.Fprintln(os.Stderr, "token not provided")
 		flag.Usage()
 		os.Exit(1)
@@ -131,9 +135,6 @@ func main() {
 
 	ctx := context.Background()
 
-	if len(*flagToken) == 0 {
-		*flagToken = os.Getenv(*flagTokenEnv)
-	}
 
 	client := github.NewClient(
 		oauth2.NewClient(ctx,
@@ -180,13 +181,19 @@ func main() {
 	}
 }
 
-var githubIssueLinksRegex = regexp.MustCompile("#[0-9]+")
+var githubIssueLinksRegex = regexp.MustCompile("#[0-9]+\n?")
 
 func githubIssueLinks(body []byte) []byte {
 	return githubIssueLinksRegex.ReplaceAllFunc(body,
 		func(in []byte) []byte {
 			number := in[1:]
+			le := ""
 
-			return []byte(fmt.Sprintf(`<a href="#%s">#%s</a>`, number, number))
+			if bytes.HasSuffix(number, []byte("\n")) {
+				le = "<br />"
+				number = number[:len(number)-1]
+			}
+
+			return []byte(fmt.Sprintf(`<a href="#%s">UC%s</a>%s`, number, number, le))
 		})
 }
