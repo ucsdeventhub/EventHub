@@ -1,7 +1,7 @@
 CHROME ?= chrome
 HTML2PDF ?= wkhtmltopdf
 
-DOCUMENTS = requirements.pdf use_cases.pdf
+DOCUMENTS = requirements.pdf use_cases.pdf design_use_cases.pdf
 .PRECIOUS: %.html
 
 all: $(DOCUMENTS)

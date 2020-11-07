@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>EventHub Use Cases </title>
+	<title>EventHub Design Use Cases </title>
 	<style>
 h1 {
 	page-break-before: always;
@@ -19,7 +19,7 @@ h1 {
 
 	<div style="text-align: center;">
 		<h1>EventHub</h1>
-		<h2>System Requirements</h2>
+		<h2>Design Use Cases</h2>
 		{{ .Logo }}
 		<ul style="list-style: none;">
 			<li>Adam - Architecture</li>
@@ -38,32 +38,50 @@ h1 {
 		<h2>CSE 110 - Fall 2020</h2>
 	</div>
 
-
-
-	<h1>System Requirements</h1>
+	<h1>Table Of Contents</h1>
+	<ol>
 	{{ range .UseCases }}
-		<h2>
-			<a name="{{ .Number }}" href="#{{ .Number }}">SR{{ .Number }}</a>
+		{{ if .IsDesign }}
+		<li value="{{ .Number }}">
+			<a href="#{{ .Number }}">{{ .Title }}</a>
+			{{ range .Labels }}
+				<span class="label" style="background-color: #{{ .Color }};">
+					{{ .Name }}
+				</span>
+			{{ end }}
+		</li>
+		{{ end }}
+	{{ end }}
+	</ol>
+
+	<h1>Intro</h1>
+	<h2>TODO: REMOVE THIS PAGE OR MOVE THE ESSAY TO GITHUB</h2>
+
+	{{ range .UseCases }}
+		{{ if .IsDesign }}
+		<h1>
+			<a name="{{ .Number }}" href="#{{ .Number }}">DUC{{ .Number }}</a>
 			{{ .Title }}
 			{{ range .Labels }}
 				<span class="label" style="background-color: #{{ .Color }};">
 					{{ .Name }}
 				</span>
 			{{ end }}
-		</h2>
+		</h1>
 		<a href="https://github.com/ucsdeventhub/EventHub/issues/{{ .Number }}">
 			open in github
 		</a>
 
 		{{ range .Sections }}
 
-			{{ if eq .Name  "Requirements" }}
+			{{ if .IsDesign }}
+				<h2>{{ .Name }}</h2>
+
 				{{ .Body }} <!-- the body is already rendered from markdown -->
 			{{ end }}
 
 		{{ end }}
-
-
+		{{ end }}
 	{{ end }}
 </body>
 </html>
