@@ -55,7 +55,7 @@ h1 {
 			open in github
 		</a>
 
-		<p>{{ .Sections.Requirements }}</p>
+		<p>{{ call .GetSection "Requirements" }}</p>
 
 	{{ end }}
 </body>
