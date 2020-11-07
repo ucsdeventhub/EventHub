@@ -1,3 +1,5 @@
+BEGIN;
+
 PRAGMA foreign_keys = ON;
 
 INSERT INTO orgs (name, description)
@@ -29,15 +31,22 @@ VALUES
 		1,
 		'Game Night 2',
 		'Playing games at night',
-		datetime('2020-02-01 20:00:00'),
-		datetime('2020-02-01 22:00:00')
+		datetime('2021-02-01 20:00:00'),
+		datetime('2021-02-01 22:00:00')
+	),
+	(
+		1,
+		'Game Night 3',
+		'Playing games at night',
+		datetime('2021-02-01 20:00:00'),
+		datetime('2021-02-01 22:00:00')
 	),
 	(
 		2,
 		'Play Frisbee On Library Walk',
 		'Everyone has to see our muscles if we''re in the way',
-		datetime('2020-02-01 20:00:00'),
-		datetime('2020-02-01 22:00:00')
+		datetime('2021-01-01 20:00:00'),
+		datetime('2021-01-01 22:00:00')
 	);
 
 INSERT INTO event_announcements (event_id, announcement)
@@ -47,7 +56,7 @@ VALUES
 
 INSERT INTO event_tags (tag_id, event_id)
 VALUES
-	('sports', 3);
+	('sports', 4);
 
 INSERT INTO users (email)
 VALUES
@@ -57,7 +66,7 @@ VALUES
 
 INSERT INTO user_tag_favorites (user_id, tag_id)
 VALUES
-	(3, 'greek'),
+	(3, 'greek');
 
 INSERT INTO user_event_favorites (user_id, event_id)
 VALUES
@@ -71,3 +80,4 @@ VALUES
 	(1, 1),
 	(3, 2);
 
+END;
