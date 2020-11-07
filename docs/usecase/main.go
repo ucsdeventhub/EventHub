@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -28,7 +29,7 @@ var flagLogo = flag.String("logo", "", "logo file")
 
 type UseCaseDoc struct {
 	Intro    string
-	Logo template.HTML
+	Logo     template.HTML
 	UseCases []*UseCase
 }
 
@@ -45,8 +46,59 @@ func (doc *UseCaseDoc) FromIssues(issues []*github.Issue) *UseCaseDoc {
 type UseCase struct {
 	Title,
 	Number string
-	Labels []*github.Label
-	Sections map[string]template.HTML
+	Labels   []*github.Label
+	Sections []*Section // map[string]template.HTML
+}
+
+func (uc *UseCase) IsDesign() bool {
+	ret := false
+	designSections := []string{
+		"Dependent Design Use Cases", "Design Workflow",
+		"Design Alternative Workflow",
+	}
+
+	for _, v := range designSections {
+		ret = ret || uc.GetSection(v) != nil
+	}
+
+	return ret
+}
+
+func (uc *UseCase) GetSection(name string) *Section {
+	for i, v := range uc.Sections {
+		if v.Name == name {
+			return uc.Sections[i]
+		}
+	}
+
+	return nil
+}
+
+func (uc *UseCase) AddSection(name string, isDesign bool) *Section {
+	for i, v := range uc.Sections {
+		if v.Name == name {
+			log.Printf("duplicate section in %s: %s", uc.Number, name)
+			return uc.Sections[i]
+		}
+	}
+
+	uc.Sections = append(uc.Sections, &Section{
+		Name:     name,
+		IsDesign: isDesign,
+		Body:     "",
+	})
+
+	return uc.Sections[len(uc.Sections)-1]
+}
+
+type Section struct {
+	Name     string
+	IsDesign bool
+	Body     template.HTML
+}
+
+func (s *Section) Append(text string) {
+	s.Body += template.HTML(text)
 }
 
 func (uc *UseCase) FromIssue(issue *github.Issue) *UseCase {
@@ -55,7 +107,7 @@ func (uc *UseCase) FromIssue(issue *github.Issue) *UseCase {
 			strings.Replace(*issue.Title, "use case:", "", -1)))
 	uc.Number = strconv.Itoa(*issue.Number)
 
-	uc.Labels = make([]*github.Label, 0, len(issue.Labels) -1)
+	uc.Labels = make([]*github.Label, 0, len(issue.Labels)-1)
 	for _, v := range issue.Labels {
 		if *v.Name != "use case" {
 			uc.Labels = append(uc.Labels, v)
@@ -66,12 +118,20 @@ func (uc *UseCase) FromIssue(issue *github.Issue) *UseCase {
 		"Description", "User Goal", "Desired Outcome", "Actor",
 		"Dependent Use Cases", "Requirements", "Pre-Conditions",
 		"Post-Conditions", "Trigger", "Workflow", "Alternative Workflow",
+		"Design Workflow", "Design Alternative Workflow",
 	}
 
-	uc.Sections = make(map[string]template.HTML)
-	section := ""
+	designSections := []string{
+		"Description", "User Goal", "Desired Outcome", "Actor",
+		"Dependent Use Cases", "Requirements", "Pre-Conditions",
+		"Post-Conditions", "Trigger",
+		"Design Workflow", "Design Alternative Workflow",
+	}
+
+	//uc.Sections = make(map[string]template.HTML)
+	section := (*Section)(nil)
 	lines := bufio.NewScanner(strings.NewReader(*issue.Body))
-ScanLoop:
+
 	for lines.Scan() {
 		line := bytes.TrimSpace(lines.Bytes())
 
@@ -79,35 +139,61 @@ ScanLoop:
 			sectionName := bytes.Title(
 				bytes.TrimSpace(
 					bytes.Replace(line, []byte("##"), nil, -1)))
+
+			var isValid, isDesign bool
 			for _, v := range validSections {
 				if string(sectionName) == v {
-					section = string(sectionName)
-					continue ScanLoop
+					isValid = true
 				}
 			}
 
-			section = ""
-			log.Printf("unknown section name: %s", sectionName)
-		} else if section != "" {
-			uc.Sections[section] = uc.Sections[section] +
-				template.HTML("\n") +
-				template.HTML(line)
+			for _, v := range designSections {
+				if string(sectionName) == v {
+					isDesign = true
+				}
+			}
+
+			if isValid {
+				section = uc.AddSection(string(sectionName), isDesign)
+			} else {
+				section = nil
+				log.Printf("unknown section name in #%d: %s",
+					*issue.Number, sectionName)
+			}
+
+		} else if section != nil {
+			section.Append("\n" + string(line))
 		}
 	}
 
-	for k, v := range uc.Sections {
-		uc.Sections[k] = template.HTML(
+	var docPrefix string
+	{
+		_, fname := filepath.Split(*flagTmpl)
+		switch fname {
+		case "use_cases.html.tmpl":
+			docPrefix = "UC"
+		case "design_use_cases.html.tmpl":
+			docPrefix = "DUC"
+		case "requirements.html.tmpl":
+			docPrefix = "REQ"
+		}
+	}
+
+	for i, v := range uc.Sections {
+		uc.Sections[i].Body = template.HTML(
 			markdown.Markdown(
-				githubIssueLinks([]byte(v))))
+				githubIssueLinks(docPrefix, []byte(v.Body))))
 	}
 
+L:
 	for _, v := range validSections {
-		_, ok := uc.Sections[v]
-
-		if !ok {
-			log.Printf("missing section %v for %v",
-				v, uc.Title)
+		for _, vv := range uc.Sections {
+			if vv.Name == v {
+				continue L
+			}
 		}
+
+		log.Printf("missing section in %d: %v", *issue.Number, v)
 	}
 
 	return uc
@@ -134,7 +220,6 @@ func main() {
 	}
 
 	ctx := context.Background()
-
 
 	client := github.NewClient(
 		oauth2.NewClient(ctx,
@@ -183,7 +268,7 @@ func main() {
 
 var githubIssueLinksRegex = regexp.MustCompile("#[0-9]+\n?")
 
-func githubIssueLinks(body []byte) []byte {
+func githubIssueLinks(docPrefix string, body []byte) []byte {
 	return githubIssueLinksRegex.ReplaceAllFunc(body,
 		func(in []byte) []byte {
 			number := in[1:]
@@ -194,6 +279,7 @@ func githubIssueLinks(body []byte) []byte {
 				number = number[:len(number)-1]
 			}
 
-			return []byte(fmt.Sprintf(`<a href="#%s">UC%s</a>%s`, number, number, le))
+			return []byte(fmt.Sprintf(`<a href="#%s">%s%s</a>%s`,
+				number, docPrefix, number, le))
 		})
 }

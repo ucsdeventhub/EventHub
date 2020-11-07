@@ -69,11 +69,15 @@ h1 {
 			open in github
 		</a>
 
-		{{ range $sectionName, $body := .Sections }}
 
-			<h2>{{ $sectionName }}</h2>
+		{{ range .Sections }}
+			{{ if .IsDesign | not }}
 
-			{{ $body }} <!-- the body is already rendered from markdown -->
+			<h2>{{ .Name }}</h2>
+
+			{{ .Body }} <!-- the body is already rendered from markdown -->
+
+			{{ end  }}
 
 		{{ end }}
 	{{ end }}
