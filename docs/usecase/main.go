@@ -46,7 +46,44 @@ type UseCase struct {
 	Title,
 	Number string
 	Labels []*github.Label
-	Sections map[string]template.HTML
+	Sections []*Section // map[string]template.HTML
+}
+
+func (uc *UseCase) GetSection(name string) *Section {
+	for i, v := range uc.Sections {
+		if v.Name == name {
+			return uc.Sections[i]
+		}
+	}
+
+	return nil
+}
+
+func (uc *UseCase) AddSection(name string, isDesign bool) *Section {
+	for i, v := range uc.Sections {
+		if v.Name == name {
+			log.Printf("duplicate section %f", name)
+			return uc.Sections[i]
+		}
+	}
+
+	uc.Sections = append(uc.Sections, &Section {
+		Name: name,
+		IsDesign: isDesign,
+		Body: "",
+	})
+
+	return uc.Sections[len(uc.Sections) - 1]
+}
+
+type Section struct {
+	Name string
+	IsDesign bool
+	Body template.HTML
+}
+
+func (s *Section) Append(text string) {
+	s.Body += template.HTML(text)
 }
 
 func (uc *UseCase) FromIssue(issue *github.Issue) *UseCase {
@@ -66,12 +103,20 @@ func (uc *UseCase) FromIssue(issue *github.Issue) *UseCase {
 		"Description", "User Goal", "Desired Outcome", "Actor",
 		"Dependent Use Cases", "Requirements", "Pre-Conditions",
 		"Post-Conditions", "Trigger", "Workflow", "Alternative Workflow",
+		"Design Workflow", "Design Alternative Workflow",
 	}
 
-	uc.Sections = make(map[string]template.HTML)
-	section := ""
+	designSections := []string {
+		"Description", "User Goal", "Desired Outcome", "Actor",
+		"Dependent Use Cases", "Requirements", "Pre-Conditions",
+		"Post-Conditions", "Trigger",
+		"Design Workflow", "Design Alternative Workflow",
+	}
+
+	//uc.Sections = make(map[string]template.HTML)
+	section := (*Section)(nil)
 	lines := bufio.NewScanner(strings.NewReader(*issue.Body))
-ScanLoop:
+
 	for lines.Scan() {
 		line := bytes.TrimSpace(lines.Bytes())
 
@@ -79,35 +124,47 @@ ScanLoop:
 			sectionName := bytes.Title(
 				bytes.TrimSpace(
 					bytes.Replace(line, []byte("##"), nil, -1)))
+
+			var isValid, isDesign bool
 			for _, v := range validSections {
 				if string(sectionName) == v {
-					section = string(sectionName)
-					continue ScanLoop
+					isValid = true
 				}
 			}
 
-			section = ""
-			log.Printf("unknown section name: %s", sectionName)
-		} else if section != "" {
-			uc.Sections[section] = uc.Sections[section] +
-				template.HTML("\n") +
-				template.HTML(line)
+			for _, v := range designSections {
+				if string(sectionName) == v {
+					isDesign = true
+				}
+			}
+
+			if isValid {
+				section = uc.AddSection(string(sectionName), isDesign)
+			} else {
+				section = nil
+				log.Printf("unknown section name: %s", sectionName)
+			}
+
+		} else if section != nil {
+			section.Append("\n" + string(line))
 		}
 	}
 
-	for k, v := range uc.Sections {
-		uc.Sections[k] = template.HTML(
+	for i, v := range uc.Sections {
+		uc.Sections[i].Body = template.HTML(
 			markdown.Markdown(
-				githubIssueLinks([]byte(v))))
+				githubIssueLinks([]byte(v.Body))))
 	}
 
+L:
 	for _, v := range validSections {
-		_, ok := uc.Sections[v]
-
-		if !ok {
-			log.Printf("missing section %v for %v",
-				v, uc.Title)
+		for _, vv := range uc.Sections {
+			if vv.Name == v {
+				continue L
+			}
 		}
+
+		log.Printf("missing section %v for %v", v, uc.Title)
 	}
 
 	return uc
