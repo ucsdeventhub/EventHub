@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+if [ $# -ne 1 ]; then
+	echo "usage: $0 user_id"
+	exit 1
+fi
+
+curl "$EVENTHUB_URL/api/users/$1" \
+	-H "Authorization: $AUTH_HEADER"
+

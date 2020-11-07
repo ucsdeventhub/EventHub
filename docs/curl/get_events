@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+if [ $# -gt 1 ]; then
+	echo "usage: $0 [query]"
+	exit 1
+fi
+
+
+
+curl -X GET "$EVENTHUB_URL/api/events$1"

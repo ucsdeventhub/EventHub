@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+if [ $# -ne 2 ]; then
+	echo "usage: $0 user_id org_id"
+	exit 1
+fi
+
+curl -X POST "$EVENTHUB_URL/api/users/$1/orgs/$2" \
+	-H "Authorization: $AUTH_HEADER"
+

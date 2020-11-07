@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+if [ $# -lt 1 -o $# -gt 2 ]; then
+	echo "usage: $0 email [code]"
+	exit 1
+fi
+
+query="?email=$1"
+
+if [ $# -gt 1 ]; then
+	query="$query&code=$2"
+fi
+
+curl -X POST "$EVENTHUB_URL/api/login$query"
