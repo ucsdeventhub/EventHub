@@ -41,6 +41,7 @@ h1 {
 	<h1>Table Of Contents</h1>
 	<ol>
 	{{ range .UseCases }}
+		{{ if .IsDesign }}
 		<li value="{{ .Number }}">
 			<a href="#{{ .Number }}">{{ .Title }}</a>
 			{{ range .Labels }}
@@ -49,6 +50,7 @@ h1 {
 				</span>
 			{{ end }}
 		</li>
+		{{ end }}
 	{{ end }}
 	</ol>
 

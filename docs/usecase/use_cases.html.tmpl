@@ -71,10 +71,13 @@ h1 {
 
 
 		{{ range .Sections }}
+			{{ if .IsDesign | not }}
 
 			<h2>{{ .Name }}</h2>
 
 			{{ .Body }} <!-- the body is already rendered from markdown -->
+
+			{{ end  }}
 
 		{{ end }}
 	{{ end }}
