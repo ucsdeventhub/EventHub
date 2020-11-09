@@ -118,16 +118,14 @@ func (uc *UseCase) FromIssue(issue *github.Issue) *UseCase {
 		"Description", "User Goal", "Desired Outcome", "Actor",
 		"Dependent Use Cases", "Requirements", "Pre-Conditions",
 		"Post-Conditions", "Trigger", "Workflow", "Alternative Workflow",
-		"Dependent Design Use Cases", "Design Workflow",
-		"Design Alternative Workflow",
+		"Design Workflow", "Design Alternative Workflow",
 	}
 
 	designSections := []string{
 		"Description", "User Goal", "Desired Outcome", "Actor",
 		"Dependent Use Cases", "Requirements", "Pre-Conditions",
 		"Post-Conditions", "Trigger",
-		"Dependent Design Use Cases", "Design Workflow",
-		"Design Alternative Workflow",
+		"Design Workflow", "Design Alternative Workflow",
 	}
 
 	//uc.Sections = make(map[string]template.HTML)
