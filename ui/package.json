@@ -1,0 +1,13 @@
+{
+  "name": "ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node eventhub.js"
+  },
+  "author": "",
+  "dependencies": {
+    "axios": "^0.21.0"
+  }
+}
