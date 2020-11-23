@@ -1,0 +1,135 @@
+#nav-logo {
+    height: 50px;
+    width: 50px;
+    background-color: black;
+    border: solid black 2px;
+}
+
+
+header {
+    background-color: #006a96;
+}
+
+.content {
+    max-width: 800px;
+    min-width: 400px;
+    margin: auto;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 24px;
+    padding-right: 12px;
+}
+
+
+nav * {
+    display: inline;
+    margin: 0px;
+    color: white;
+}
+
+#nav-title h1 {
+    font-weight: bold;
+    font-size: 28px;
+}
+
+#nav-title > *,
+nav > * {
+    vertical-align: middle
+}
+
+nav a {
+    text-decoration: none;
+}
+
+nav > ul {
+    padding-left: 0px;
+}
+
+
+nav > ul > li {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+nav a:hover,
+nav a:hover *,
+nav a:focus-within,
+nav a:focus-within * {
+    color: #ffcd00;
+}
+
+@media (max-width: 600px) {
+    #nav-title > h1 {
+        display: none;
+    }
+}
+
+@media (max-width: 500px) {
+    nav {
+        font-size: 18px;
+    }
+}
+
+.org-logo {
+    height: 200px;
+    width: 200px;
+    background-color: black;
+}
+
+.event-preview-wide {
+    box-sizing: border-box;
+    width: 100%;
+    height: 200px;
+    background-color: white;
+    border: solid black 1px;
+    border-radius: 7px;
+}
+
+.event-detail-field {
+    font-weight: bold;
+}
+
+.event-edit-field {
+    display: block;
+    margin: 8px;
+}
+.event-edit-field > input{
+    margin: 8px;
+}
+
+.no-scroll-list {
+    list-style: none;
+    padding: 10px;
+}
+
+.no-scroll-item {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 5px;
+}
+
+.event-preview-square {
+    width: 230px;
+    height: 200px;
+    background-color: white;
+    overflow: hidden;
+    border: solid black 1px;
+    border-radius: 5px;
+}
+
+.side-scroll-list {
+    list-style: none;
+    padding: 0px;
+    white-space: nowrap;
+    overflow: scroll;
+}
+
+.side-scroll-item {
+    display: inline-block;
+    margin: 10px;
+    padding: 5px;
+}
