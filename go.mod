@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/arolek/p v0.0.0-20191103215535-df3c295ed582
+	github.com/chromedp/chromedp v0.5.3 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/mattn/go-sqlite3 v1.14.4
