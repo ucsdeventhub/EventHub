@@ -28,6 +28,16 @@ class User {
         eventhub.delToken();
 		localStorage.removeItem("user");
 	}
+
+	async orgFavorites() {
+		const user = await this.get();
+		return user.orgFavorites;
+	}
+
+    async eventFavorites() {
+        const user = await this.get();
+        return user.eventFavorites;
+    }
 };
 
 const lib = new User();
