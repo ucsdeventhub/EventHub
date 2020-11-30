@@ -7,11 +7,18 @@
     "@testing-library/react": "^11.2.2",
     "@testing-library/user-event": "^12.2.2",
     "axios": "^0.21.0",
+    "daypilot-pro-react": "https://npm.daypilot.org/daypilot-pro-react/trial/2018.2.3297.tar.gz",
+    "moment": "^2.29.1",
     "pegjs": "^0.10.0",
+    "prop-types": "^15.7.2",
     "react": "^17.0.1",
+    "react-big-calendar": "^0.29.0",
     "react-dom": "^17.0.1",
+    "react-meta-tags": "^1.0.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.0",
+    "react-slot": "^0.1.2",
+    "react-tackle-box": "^2.1.0",
     "web-vitals": "^0.2.4"
   },
   "scripts": {
