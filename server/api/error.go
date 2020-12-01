@@ -29,6 +29,7 @@ func Ok(w http.ResponseWriter, body io.Reader) {
 }
 
 func OkJSON(w http.ResponseWriter, v interface{}) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8");
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(v)
 	if err != nil {

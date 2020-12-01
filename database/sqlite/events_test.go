@@ -30,3 +30,9 @@ func TestGetTrendingEvents(t *testing.T) {
 
 	t.Log(db.GetTrendingEvents())
 }
+
+func TestGetEventAnnouncements (t *testing.T) {
+	db := getTestFactory(t).NonTx(context.Background())
+
+	t.Log(db.GetAnnouncementsByEventID(3))
+}

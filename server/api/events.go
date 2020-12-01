@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -124,7 +125,33 @@ func (srv *Provider) GetEventsID(w http.ResponseWriter, r *http.Request) {
 
 	event, err := srv.DB.NonTx(r.Context()).GetEventByID(eventID)
 	if err != nil {
+		if errors.Is(err, database.ErrNoRows) {
+			Error(w, err, "event does not exist", http.StatusNotFound)
+			return
+		}
+
 		Error(w, err, "error getting event from database", http.StatusInternalServerError)
+		return
+	}
+
+	OkJSON(w, event)
+}
+
+func (srv *Provider) GetEventsIDAnnouncements(w http.ResponseWriter, r *http.Request) {
+	eventID, err := EventIDToken.GetInt(r)
+	if err != nil {
+		Error(w, err, "could not get event id from path", http.StatusBadRequest)
+		return
+	}
+
+	event, err := srv.DB.NonTx(r.Context()).GetAnnouncementsByEventID(eventID)
+	if err != nil {
+		if errors.Is(err, database.ErrNoRows) {
+			Error(w, err, "event does not exist", http.StatusNotFound)
+			return
+		}
+
+		Error(w, err, "error getting event announcements from database", http.StatusInternalServerError)
 		return
 	}
 

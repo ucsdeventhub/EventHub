@@ -7,6 +7,7 @@ const POST = "POST";
 const PUT = "PUT";
 const DELETE = "DELETE";
 
+
 class Client {
 	constructor(root) {
 		this.root = root;
@@ -14,6 +15,18 @@ class Client {
 
 	getUrl(route) {
 		return `${this.root}/api${route}`;
+	}
+
+	setToken(token) {
+		localStorage.setItem("token", JSON.stringify(token));
+	}
+
+	getToken() {
+		return JSON.parse(localStorage.getItem("token"));
+	}
+
+	delToken()  {
+		localStorage.removeItem("token");
 	}
 
 	async request(method, route, auth, body) {
@@ -52,13 +65,13 @@ class Client {
 
 
 		case POST:
-			return (axios.post(url, {
+			return (await axios.post(url, {
 				url,
 				headers,
 			})).data;
 
 		case PUT:
-			return (axios.put(url, {
+			return (await axios.put(url, {
 				url,
 				headers,
 			})).data;
@@ -66,6 +79,16 @@ class Client {
 		default:
 			throw new Error(`unknown method ${method}`);
 		}
+	}
+
+	async postLogin1(email) {
+		const route = `/login?email=${email}`;
+		await this.request(POST, route);
+	}
+
+	async postLogin2(email, code) {
+		const route = `/login?email=${email}&code=${code}`;
+		return await this.request(POST, route);
 	}
 
 	async getOrgs(tags, limit, offset) {
@@ -92,7 +115,14 @@ class Client {
 		return await this.request(GET, route);
 	}
 
+	async getEventsRaw(query) {
+		let route = "/events";
+
+		return await this.request(GET, `${route}${query}`);
+	}
+
 	async getEvents(orgs, tags, before, after, limit, offset) {
+		console.log("/events orgs tags", orgs, tags)
 		let args = [];
 
 		if (orgs && orgs.length > 0) {
@@ -119,6 +149,7 @@ class Client {
 			args.push(`offset=${offset}`);
 		}
 
+		console.log("/events args", args);
 		let route = "/events";
 
 		if (args.length > 0 ) {
@@ -127,8 +158,51 @@ class Client {
 
 		return await this.request(GET, route);
 	}
+
+	async getEventsTrending() {
+		let route = "/events/trending";
+
+		return await this.request(GET, route);
+	}
+
+	async getEvent(id) {
+		const route = `/events/${id}`
+		return await this.request(GET, route);
+	}
+
+	async getEventAnnouncements(id) {
+		const route = `/events/${id}/announcements`
+		return await this.request(GET, route);
+
+	}
+
+	async getOrg(id) {
+		const route = `/orgs/${id}`;
+		return await this.request(GET, route);
+	}
+
+	async getOrgsEvents(orgID) {
+		return await this.getEvents([orgID]);
+	}
+
+	async getOrgsSelf() {
+		const route = "/orgs/self";
+
+		return await this.request(GET, route, true);
+	}
+
+	async getUsersSelf() {
+		let route = "/users/self";
+
+		return await this.request(GET, route, true);
+	}
 }
 
+window.c = new Client(window.location.origin);
+
+export default window.c;
+
+/*
 const c = new Client("http://localhost:8080");
 
 // print promise
@@ -139,8 +213,4 @@ const pp = (p) => {
 pp(c.getOrgs(["greek"]));
 
 pp(c.getEvents([1, 2], ["gaming"]));
-
-
-
-
-
+*/

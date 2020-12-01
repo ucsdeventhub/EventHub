@@ -7,6 +7,8 @@ const POST = "POST";
 const PUT = "PUT";
 const DELETE = "DELETE";
 
+export default new Client("http://localhost:8080");
+
 class Client {
 	constructor(root) {
 		this.root = root;
@@ -126,9 +128,9 @@ class Client {
 		}
 
 		return await this.request(GET, route);
-	} 
+	}
 
-	async getEventsTrending() {		
+	async getEventsTrending() {
 		let routes = "/events/trending";
 
 		return await this.request(GET, route);
@@ -203,10 +205,9 @@ class Client {
 
 		return await this.request(GET, route, token);
 	}
-
-
 }
 
+/*
 const c = new Client("http://localhost:8080");
 
 // print promise
@@ -217,3 +218,4 @@ const pp = (p) => {
 pp(c.getOrgs(["greek"]));
 
 pp(c.getEvents([1, 2], ["gaming"]));
+*/
