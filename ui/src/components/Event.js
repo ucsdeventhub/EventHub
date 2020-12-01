@@ -27,8 +27,9 @@ export default withRouter(class Event extends Component {
             });
         }
 
-        if (!this.state.announcements) {
-            const announcements = await eventhub.getEventAnnouncements(this.state.event.orgID);
+        if (!this.props.preview && !this.state.announcements) {
+            const announcements = await eventhub.getEventAnnouncements(this.state.event.id);
+            console.log("got announcements: ", announcements);
             this.setState({
                 announcements,
                 ...this.state,
@@ -224,9 +225,11 @@ export default withRouter(class Event extends Component {
     }
 
     render() {
-        if (!this.state) {
+        if (!this.state || !this.state.event || !this.state.org) {
             return <div/>;
         }
+
+        console.log("state: ", this.state);
 
         if (this.props.preview) {
             return this.preview();
@@ -236,12 +239,15 @@ export default withRouter(class Event extends Component {
             return this.edit()
         }
 
-        const announcements = this.state.announcements.map((a, i) => (
-            <li key={i}>
-                <h3>{a.date}</h3>
-                <p>{a.body}</p>
-            </li>
-        ));
+        var announcements = <div/>;
+        if (this.state.announcements) {
+            announcements = this.state.announcements.map((a, i) => (
+                <li key={i}>
+                    <h3>{a.created}</h3>
+                    <p>{a.announcement}</p>
+                </li>
+            ));
+        }
 
         return (
             <div>
@@ -254,7 +260,7 @@ export default withRouter(class Event extends Component {
                         <tr>
                             <td className="event-detail-field">By: </td>
                             <td>
-                                <Link to={`/orgs/${this.state.org.id}`}>{this.state.org.name}</Link>
+                                <Link to={`/orgs/${this.state.event.orgID}`}>{this.state.org.name}</Link>
                             </td>
                         </tr>
                         <tr>

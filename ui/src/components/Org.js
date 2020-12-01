@@ -6,21 +6,36 @@ import eventhub from "../lib/eventhub";
 class OrgEventList extends Component {
     constructor(props) {
         super(props)
+
+        if (this.props.model) {
+            this.state = {
+                org: this.props.model
+            };
+        }
     }
 
     async componentDidMount() {
-        const events = (await eventhub.getOrgsEvents(this.props.orgID))
-            .map((evt) => {
-                return {
-                    event: evt,
-                    org: this.props.model,
-                };
-            });
-        this.setState({events});
+        console.log("state: ", this.state);
+        console.log("props: ", this.props);
+        if (!this.state) {
+            const org = await eventhub.getOrg(this.props.orgID);
+            this.setState({org});
+        }
+
+        if (!this.state.events) {
+            const events = (await eventhub.getOrgsEvents(this.state.org.id))
+                .map((evt) => {
+                    return {
+                        event: evt,
+                        org: this.props.model,
+                    };
+                });
+            this.setState({events, ...this.state});
+        }
     }
 
     render() {
-        if (!this.state) {
+        if (!this.state || !this.state.events) {
             return <div/>;
         }
 
@@ -55,7 +70,7 @@ export default class Org extends Component {
     }
 
     imgSrc() {
-        return `/api/orgs/${this.props.orgID}/logo`
+        return `/api/orgs/${this.state.id}/logo`
     }
 
     render() {

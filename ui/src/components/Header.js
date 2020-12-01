@@ -1,17 +1,167 @@
 import { Component } from "react";
 import { Link } from "react-router-dom";
 import libuser from "../lib/user";
+import eventhub from "../lib/eventhub";
 
+
+
+class LoginModal extends Component {
+    constructor(props) {
+        super(props)
+
+        // 0 - input email
+        // 1 - input code
+        this.state = {
+            value: "",
+            step : 0,
+        };
+
+        this.loginSubmit = this.loginSubmit.bind(this);
+        this.pinSubmit = this.pinSubmit.bind(this);
+    }
+
+    async loginSubmit(evt) {
+        evt.preventDefault();
+        const email = this.state.value;
+        await eventhub.postLogin1(email);
+
+        console.log("step 1 successfule, setting email");
+
+        this.setState({
+            value: "",
+            step: 1,
+            email,
+        });
+
+        console.log("state: ", this.state);
+    }
+
+    login() {
+        return (
+            <div id="login-modal">
+                <h1>Log In</h1>
+                <form onSubmit={this.loginSubmit}>
+                    <label htmlFor="login-email">Email:</label>
+                    <input
+                        name="login-email"
+                        type="email"
+                        value={this.state.value}
+                        onChange={(evt) => {
+                            this.setState({
+                                value: evt.target.value,
+                            });
+                        }}/>
+                    <input type="submit" />
+                </form>
+                <p>
+                    Creating an account and logging in only requires an email. We'll send
+                    you a one time password and you'll stay logged in on this device.
+                </p>
+            </div>
+        );
+    }
+
+    async pinSubmit(evt) {
+        evt.preventDefault();
+        const code = this.state.value;
+        var token;
+        try {
+            token = await eventhub.postLogin2(this.state.email, code);
+        } catch (e) {
+            document.querySelector(`input[name="login-otp"]`)
+                .setCustomValidity("invalid code");
+            return;
+        }
+
+        libuser.del();
+        eventhub.setToken(token);
+        this.props.onSuccess();
+    }
+
+    pin(wrong) {
+        return (
+            <div id="login-modal">
+                <h1>Log In</h1>
+                <form onSubmit={this.pinSubmit}>
+                    <label htmlFor="login-otp">One Time Password</label>
+                    <input
+                        name="login-otp"
+                        type="text"
+                        value={this.state.value}
+                        onChange={(evt) => {
+                            this.setState({
+                                value: evt.target.value,
+                            });
+                        }}/>
+                    <input type="submit" />
+                </form>
+            </div>
+        );
+    }
+
+    render() {
+        switch (this.state.step) {
+            case 0:
+                return this.login();
+            case 1:
+                return this.pin(false);
+            default:
+                console.log("invalid state!!", this.state);
+                return <div/>
+        }
+    }
+}
 
 export default class Header extends Component {
     constructor(props) {
         super(props)
+
+        this.state = {
+            showLogin : false,
+        };
+
+        this.loginToggle = this.loginToggle.bind(this);
+        this.logout = this.logout.bind(this);
+        this.loggedIn = this.loggedIn.bind(this);
+    }
+
+
+    async componentDidMount() {
+        const user = await libuser.get();
+        this.setState({
+            user,
+            ...this.state,
+        });
+    }
+
+    async loggedIn() {
+        const user = await libuser.get();
+        this.setState({
+            user,
+            showLogin: false,
+        });
+    }
+
+    loginToggle() {
+        this.setState({
+            showLogin: this.state.showLogin != true,
+        });
+
+        console.log(this.state.showLogin);
+    }
+
+    logout() {
+        console.log("logging out");
+
+        libuser.del();
+        this.setState({
+            user: null,
+            showLogin: this.state.showLogin,
+        });
     }
 
     render() {
-
-        const user = libuser.get();
-
+        const user = this.state.user;
         return (
             <header>
                 <nav className="content" role="navigation">
@@ -32,16 +182,21 @@ export default class Header extends Component {
                                 <Link to="/settings">Settings</Link>
                             </li>
                         )}
-                        {user && user.remote && (
+                        {user && user.email && (
                             <li>
-                                <Link to="/logout">Logout</Link>
-                            </li>)}
-                        {(!user || !user.remote) && (
+                                <button onClick={this.logout}>Logout</button>
+                            </li>
+                        )}
+                        {(!user || !user.email) && (
                             <li>
-                                <Link to="/login">Login</Link>
-                            </li>)}
+                                <button onClick={this.loginToggle}>Login</button>
+                            </li>
+                        )}
                     </ul>
                 </nav>
+                { this.state.showLogin && (
+                    <LoginModal onSuccess={this.loggedIn} />
+                )}
             </header>
         );
     }

@@ -22,9 +22,9 @@ type Event struct {
 }
 
 type Announcement struct {
-	EventID int `json:"id"`
-	Announcement string `json:"announcement"`
-	Created time.Time `json:"created"`
+	EventID      int       `json:"id"`
+	Announcement string    `json:"announcement"`
+	Created      time.Time `json:"created"`
 }
 
 type Org struct {
