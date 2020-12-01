@@ -195,7 +195,7 @@ class Client {
 	}
 
 	async getOrgSelf(token) {
-		await getOrgEvent(token);
+		return await getOrgEvent(token);
 	}
 
 	async getSelf(token) {
