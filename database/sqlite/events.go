@@ -232,3 +232,45 @@ func (q querierFacade) GetEventByID(eventID int) (*models.Event, error) {
 func (q querierFacade) UpsertEvent(event *models.Event) (eventID int, err error) {
 	panic("unimplemented")
 }
+
+func (q querierFacade) GetAnnouncementsByEventID(eventID int) ([]models.Announcement, error) {
+	query := `SELECT
+		a.event_id,
+		a.annoucement,
+		a.created
+	FROM
+		event_announcements AS a
+	JOIN
+		events AS e
+	ON
+		a.event_id = e.id
+	WHERE
+		e.event_id
+	AND
+		a.deleted IS NULL;
+	`
+
+	rows, err := q.Query(query, eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []models.Announcement
+
+	for rows.Next() {
+		var a models.Announcement
+
+		err := rows.Scan(
+			&a.EventID,
+			&a.Announcement,
+			&a.Created,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		ret = append(ret, a)
+	}
+
+	return ret, nil
+}

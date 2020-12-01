@@ -21,6 +21,8 @@ func main() {
 		panic(err)
 	}
 
+	log.Println("database created")
+
 	server := server.Provider{
 		BuildNumber: "local",
 		StaticDir:   "static",
@@ -38,5 +40,6 @@ func main() {
 	}
 
 	handler := server.IntoHandler()
+	log.Println("running server on :8080")
 	http.ListenAndServe(":8080", handler)
 }

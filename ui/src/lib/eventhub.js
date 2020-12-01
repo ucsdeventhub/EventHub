@@ -7,6 +7,7 @@ const POST = "POST";
 const PUT = "PUT";
 const DELETE = "DELETE";
 
+
 class Client {
 	constructor(root) {
 		this.root = root;
@@ -127,8 +128,49 @@ class Client {
 
 		return await this.request(GET, route);
 	}
+
+	async getEventsTrending() {
+		let route = "/events/trending";
+
+		return await this.request(GET, route);
+	}
+
+	async getEvent(id) {
+		const route = `/events/${id}`
+		return await this.request(GET, route);
+	}
+
+	async getEventAnnouncements(id) {
+		const route = `/events/${id}`
+		return await this.request(GET, route);
+
+	}
+
+	async getOrg(id) {
+		const route = `/orgs/${id}`;
+		return await this.request(GET, route);
+	}
+
+	async getOrgsEvents(orgID) {
+		return await this.getEvents([orgID]);
+	}
+
+	async getOrgsSelf() {
+		const route = "/orgs/self";
+
+		return await this.request(GET, route, true);
+	}
+
+	async getUsersSelf() {
+		let route = "/users/self";
+
+		return await this.request(GET, route, true);
+	}
 }
 
+export default new Client(window.location.origin);
+
+/*
 const c = new Client("http://localhost:8080");
 
 // print promise
@@ -139,8 +181,4 @@ const pp = (p) => {
 pp(c.getOrgs(["greek"]));
 
 pp(c.getEvents([1, 2], ["gaming"]));
-
-
-
-
-
+*/

@@ -26,6 +26,7 @@ class Trending extends Component {
                         updated: new Date().toISOString(),
                     },
                     org: {
+                        id: 2,
                         name: "org name",
                     },
                 },
@@ -43,6 +44,7 @@ class Trending extends Component {
                         updated: new Date().toISOString(),
                     },
                     org: {
+                        id: 2,
                         name: "org name",
                     },
                 },
@@ -97,6 +99,7 @@ class EventSideScroll extends Component {
                         updated: new Date().toISOString(),
                     },
                     org: {
+                        id: 2,
                         name: "org name",
                     },
                 },
@@ -114,6 +117,7 @@ class EventSideScroll extends Component {
                         updated: new Date().toISOString(),
                     },
                     org: {
+                        id: 2,
                         name: "org name",
                     },
                 },

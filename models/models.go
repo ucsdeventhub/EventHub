@@ -21,6 +21,12 @@ type Event struct {
 	Tags        []string  `json:"tags"`
 }
 
+type Announcement struct {
+	EventID int `json:"id"`
+	Announcement string `json:"announcement"`
+	Created time.Time `json:"created"`
+}
+
 type Org struct {
 	ID           *int     `json:"id"`
 	Name         string   `json:"name"`

@@ -1,5 +1,6 @@
 import { Fragment, Component } from "react";
 import { Link, withRouter } from "react-router-dom";
+import eventhub from "../lib/eventhub";
 
 export default withRouter(class Event extends Component {
     constructor(props) {
@@ -12,34 +13,25 @@ export default withRouter(class Event extends Component {
         console.log("in cons: ", props);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         if (!this.state) {
+            const event = await eventhub.getEvent(this.props.eventID);
+            this.setState({ event });
+        }
+
+        if (!this.state.org) {
+            const org = await eventhub.getOrg(this.state.event.orgID);
             this.setState({
-                event: {
-                    id: this.props.eventID,
-                    name: "event name",
-                    orgID: 2,
-                    description: "event description",
-                    startTime: new Date().toISOString(),
-                    endTime: new Date().toISOString(),
-                    tags: ["gaming", "greek"],
-                    location: "price center",
-                    created: new Date().toISOString(),
-                    updated: new Date().toISOString(),
-                },
-                org: {
-                    name: "org name",
-                },
-                announcements: [
-                    {
-                        date: new Date().toISOString(),
-                        body: "announcement 1",
-                    },
-                    {
-                        date: new Date().toISOString(),
-                        body: "announcement 2",
-                    },
-                ],
+                org,
+                ...this.state,
+            });
+        }
+
+        if (!this.state.announcements) {
+            const announcements = await eventhub.getEventAnnouncements(this.state.event.orgID);
+            this.setState({
+                announcements,
+                ...this.state,
             });
         }
     }
