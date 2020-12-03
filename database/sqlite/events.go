@@ -108,16 +108,36 @@ func (q querierFacade) GetEvents(filter database.EventFilter) ([]models.Event, e
 		tag.tag_id
 	FROM
 		events AS e
+	JOIN (
+		SELECT
+			e.id,
+			e.name,
+			e.org_id,
+			e.deleted,
+			e.start_time,
+			e.end_time
+		FROM
+			events AS e
+		LEFT JOIN
+			tag
+		ON
+			tag.event_id = e.id OR tag.org_id = e.org_id
+		WHERE
+			%s
+		GROUP BY e.id
+		ORDER BY
+			e.start_time, e.id
+		LIMIT %d
+		OFFSET %d
+	) AS result
+	ON
+		e.id = result.id
 	LEFT JOIN
 		tag
 	ON
 		tag.event_id = e.id OR tag.org_id = e.org_id
-	WHERE
-		%s
 	ORDER BY
-		e.start_time
-	LIMIT %d
-	OFFSET %d;
+		e.start_time, e.id;
 	`, strings.Join(where, " AND "), filter.Limit, filter.Offset)
 
 	log.Println(query)
@@ -150,24 +170,28 @@ func (q querierFacade) GetTrendingEvents() ([]models.Event, error) {
 		tag.tag_id
 	FROM
 		events AS e
+	JOIN (
+		SELECT
+			e.id,
+			count(*) AS c
+		FROM events AS e
+		JOIN
+			user_event_favorites AS fav
+		ON
+			fav.event_id = e.id
+		WHERE
+			e.deleted IS NULL AND e.created > ?  AND e.start_time > ?
+		GROUP BY e.id
+		ORDER BY c DESC
+		LIMIT 10
+	) AS result
+	ON
+		result.id = e.id
 	LEFT JOIN
 		tag
 	ON
 		tag.event_id = e.id OR tag.org_id = e.org_id
-	LEFT JOIN
-		user_event_favorites AS fav
-	ON
-		fav.event_id = e.id
-	WHERE
-		e.deleted IS NULL
-	AND
-		e.created > ?
-	AND
-		e.start_time < ?
-	GROUP BY
-		e.id
-	ORDER BY
-		count(fav.user_id) DESC;
+	ORDER BY result.c DESC, e.id;
 	`
 
 	rows, err := q.Query(query,
@@ -231,4 +255,46 @@ func (q querierFacade) GetEventByID(eventID int) (*models.Event, error) {
 
 func (q querierFacade) UpsertEvent(event *models.Event) (eventID int, err error) {
 	panic("unimplemented")
+}
+
+func (q querierFacade) GetAnnouncementsByEventID(eventID int) ([]models.Announcement, error) {
+	query := `SELECT
+		a.event_id,
+		a.announcement,
+		a.created
+	FROM
+		event_announcements AS a
+	JOIN
+		events AS e
+	ON
+		a.event_id = e.id
+	WHERE
+		a.event_id = ?
+	AND
+		a.deleted IS NULL;
+	`
+
+	rows, err := q.Query(query, eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []models.Announcement
+
+	for rows.Next() {
+		var a models.Announcement
+
+		err := rows.Scan(
+			&a.EventID,
+			&a.Announcement,
+			&a.Created,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		ret = append(ret, a)
+	}
+
+	return ret, nil
 }

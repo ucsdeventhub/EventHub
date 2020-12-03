@@ -4,50 +4,18 @@ import libuser from "../lib/user";
 
 import Event from "./Event";
 
+import eventhub from "../lib/eventhub";
+
 class Trending extends Component {
     constructor(props) {
         super(props)
     }
 
-    componentDidMount() {
-        this.setState({
-            events: [
-                {
-                    event: {
-                        id: 1,
-                        name: "event name 1",
-                        orgID: 2,
-                        description: "event description",
-                        startTime: new Date().toISOString(),
-                        endTime: new Date().toISOString(),
-                        tags: ["gaming", "greek"],
-                        location: "price center",
-                        created: new Date().toISOString(),
-                        updated: new Date().toISOString(),
-                    },
-                    org: {
-                        name: "org name",
-                    },
-                },
-                {
-                    event: {
-                        id: 1,
-                        name: "event name 2",
-                        orgID: 2,
-                        description: "event description",
-                        startTime: new Date().toISOString(),
-                        endTime: new Date().toISOString(),
-                        tags: ["gaming", "greek"],
-                        location: "price center",
-                        created: new Date().toISOString(),
-                        updated: new Date().toISOString(),
-                    },
-                    org: {
-                        name: "org name",
-                    },
-                },
-            ]
-        });
+    async componentDidMount() {
+        if (!this.state) {
+            const events = await eventhub.getEventsTrending();
+            this.setState({events});
+        }
     }
 
     render() {
@@ -55,10 +23,12 @@ class Trending extends Component {
             return <div/>;
         }
 
+        console.log("trending state: ", this.state);
+
         const events = this.state.events.map((event, i) => {
             return (
                 <li key={i} className="event-preview-wide no-scroll-item" >
-                    <Event preview model={event} />
+                    <Event preview model={{event}} />
                 </li>
             );
         });
@@ -78,47 +48,40 @@ class Trending extends Component {
 class EventSideScroll extends Component {
     constructor(props) {
         super(props)
+        if (this.props.events) {
+            this.state = {
+                events: this.props.events.map((event) => {return {event}}),
+            };
+        }
     }
 
-    componentDidMount() {
-        this.setState({
-            events: [
-                {
-                    event: {
-                        id: 1,
-                        name: "event name 1",
-                        orgID: 2,
-                        description: "event description",
-                        startTime: new Date().toISOString(),
-                        endTime: new Date().toISOString(),
-                        tags: ["gaming", "greek"],
-                        location: "price center",
-                        created: new Date().toISOString(),
-                        updated: new Date().toISOString(),
-                    },
-                    org: {
-                        name: "org name",
-                    },
-                },
-                {
-                    event: {
-                        id: 1,
-                        name: "event name 2",
-                        orgID: 2,
-                        description: "event description",
-                        startTime: new Date().toISOString(),
-                        endTime: new Date().toISOString(),
-                        tags: ["gaming", "greek"],
-                        location: "price center",
-                        created: new Date().toISOString(),
-                        updated: new Date().toISOString(),
-                    },
-                    org: {
-                        name: "org name",
-                    },
-                },
-            ]
-        });
+    async componentDidMount() {
+        if (!this.events && !this.props.eventIDs) {
+            const events = (await eventhub.getEvents(this.props.orgIDs, this.props.tagIDs))
+                .map((event) => {return {event}});
+
+            this.setState({events});
+        } else if (!this.events && this.props.eventIDs) {
+            let events = [];
+            for (let i = 0; i < this.props.eventIDs.length; i++) {
+                console.log("event ID: ", this.props.eventIDs[i]);
+                let event = await eventhub.getEvent(this.props.eventIDs[i]);
+                events.push({event});
+            }
+
+            this.setState({events});
+        }
+
+        console.log("about to fetch orgs:", this.state.events);
+        let events = this.state.events;
+        for (let i = 0; i < events.length; i++) {
+            if (!events[i].org) {
+                events[i].org = await eventhub.getOrg(events[i].event.orgID);
+            }
+        }
+
+        this.setState({events});
+
     }
 
     render() {
@@ -148,7 +111,11 @@ class WelcomeBanner extends Component {
     }
 
     render() {
-        return <div/>
+        return (
+            <div>
+                <h1>Welcome to Event Hub</h1>
+            </div>
+        )
     }
 }
 
@@ -159,22 +126,34 @@ export default class Home extends Component {
         super(props)
     }
 
-    componentDidMount() {
-        window.setDefaultUser();
+    async componentDidMount() {
+        //window.setDefaultUser();
 
         this.setState({
-            user: libuser.get(),
+            user: await libuser.get(),
         });
     }
 
     userFavorites() {
+        const user = this.state.user;
         return (
             <>
-                <h2>Favorited Events</h2>
-                <EventSideScroll events={[]} />
+                { user && user.eventFavorites.length && (
+                    <>
+                        <h2>Favorited Events</h2>
+                        <EventSideScroll eventIDs={user.eventFavorites} />
+                    </>
+                )}
 
-                <h2>Upcoming events from favorited Orgs and Tags</h2>
-                <EventSideScroll events={[]} />
+                { user && ((user.tagFavorites &&user.tagFavorites.length)
+                    || (user.orgFavorites && user.orgFavorites.length)) && (
+                    <>
+                        <h2>Favorited Events</h2>
+                        <EventSideScroll
+                            tagIDs={user.tagFavorites}
+                            orgIDs={user.orgFavorites} />
+                    </>
+                )}
             </>
         );
     }
@@ -186,6 +165,8 @@ export default class Home extends Component {
         }
 
         const {user} = this.state;
+
+
         let top;
         if (user && (user.eventFavorites || user.tagFavorites || user.orgFavorites)) {
             top = this.userFavorites();

@@ -11,11 +11,12 @@ import Org from "./components/Org";
 import Event from "./components/Event";
 import Header from "./components/Header";
 import Home from "./components/Home";
+import Search from "./components/Search";
 
 function App() {
   return (
-      <Router>
-          <Header/>
+    <Router>
+        <Header/>
           <div className="content">
               <Switch>
                 <Route exact={true} path="/" render={() => (
@@ -39,10 +40,14 @@ function App() {
                     <h1>Orgs</h1>
                 )} />
 
+                <Route path="/search" render={() => (
+                    <Search />
+                )} />
+
                 <Route path="/" render={() => (<h1>Not found!</h1>)} />
             </Switch>
         </div>
-      </Router>
+    </Router>
   );
 }
 

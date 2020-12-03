@@ -1,5 +1,6 @@
 import { Fragment, Component } from "react";
 import { Link, withRouter } from "react-router-dom";
+import eventhub from "../lib/eventhub";
 
 export default withRouter(class Event extends Component {
     constructor(props) {
@@ -12,34 +13,26 @@ export default withRouter(class Event extends Component {
         console.log("in cons: ", props);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         if (!this.state) {
+            const event = await eventhub.getEvent(this.props.eventID);
+            this.setState({ event });
+        }
+
+        if (!this.state.org) {
+            const org = await eventhub.getOrg(this.state.event.orgID);
             this.setState({
-                event: {
-                    id: this.props.eventID,
-                    name: "event name",
-                    orgID: 2,
-                    description: "event description",
-                    startTime: new Date().toISOString(),
-                    endTime: new Date().toISOString(),
-                    tags: ["gaming", "greek"],
-                    location: "price center",
-                    created: new Date().toISOString(),
-                    updated: new Date().toISOString(),
-                },
-                org: {
-                    name: "org name",
-                },
-                announcements: [
-                    {
-                        date: new Date().toISOString(),
-                        body: "announcement 1",
-                    },
-                    {
-                        date: new Date().toISOString(),
-                        body: "announcement 2",
-                    },
-                ],
+                org,
+                ...this.state,
+            });
+        }
+
+        if (!this.props.preview && !this.state.announcements) {
+            const announcements = await eventhub.getEventAnnouncements(this.state.event.id);
+            console.log("got announcements: ", announcements);
+            this.setState({
+                announcements,
+                ...this.state,
             });
         }
     }
@@ -232,9 +225,11 @@ export default withRouter(class Event extends Component {
     }
 
     render() {
-        if (!this.state) {
+        if (!this.state || !this.state.event || !this.state.org) {
             return <div/>;
         }
+
+        console.log("state: ", this.state);
 
         if (this.props.preview) {
             return this.preview();
@@ -244,12 +239,15 @@ export default withRouter(class Event extends Component {
             return this.edit()
         }
 
-        const announcements = this.state.announcements.map((a, i) => (
-            <li key={i}>
-                <h3>{a.date}</h3>
-                <p>{a.body}</p>
-            </li>
-        ));
+        var announcements = <div/>;
+        if (this.state.announcements) {
+            announcements = this.state.announcements.map((a, i) => (
+                <li key={i}>
+                    <h3>{a.created}</h3>
+                    <p>{a.announcement}</p>
+                </li>
+            ));
+        }
 
         return (
             <div>
@@ -262,7 +260,7 @@ export default withRouter(class Event extends Component {
                         <tr>
                             <td className="event-detail-field">By: </td>
                             <td>
-                                <Link to={`/orgs/${this.state.org.id}`}>{this.state.org.name}</Link>
+                                <Link to={`/orgs/${this.state.event.orgID}`}>{this.state.org.name}</Link>
                             </td>
                         </tr>
                         <tr>

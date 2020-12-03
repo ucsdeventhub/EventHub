@@ -51,7 +51,7 @@ VALUES
 
 INSERT INTO event_announcements (event_id, announcement)
 VALUES
-	(3, 'Change of plans bros, we''ll have to do it *next* to library walk');
+	(4, 'Change of plans bros, we''ll have to do it *next* to library walk');
 
 
 INSERT INTO event_tags (tag_id, event_id)

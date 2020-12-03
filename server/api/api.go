@@ -84,6 +84,7 @@ func New(router chi.Router, srv *Provider) {
 	router.Get(BuildRoute("events"), srv.GetEvents)
 	router.Get(BuildRoute("events", "trending"), srv.GetEventsTrending)
 	router.Get(BuildRoute("events", EventIDToken), srv.GetEventsID)
+	router.Get(BuildRoute("events", EventIDToken, "announcements"), srv.GetEventsIDAnnouncements)
 	router.Get(BuildRoute("orgs"), srv.GetOrgs)
 	router.Get(BuildRoute("orgs", OrgIDToken), srv.GetOrgsID)
 

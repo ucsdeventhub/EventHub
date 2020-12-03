@@ -34,6 +34,8 @@ type Provider interface {
 	GetTrendingEvents() ([]models.Event, error)
 	UpsertEvent(event *models.Event) (eventID int, err error)
 
+	GetAnnouncementsByEventID(eventID int) ([]models.Announcement, error)
+
 	// Org queries
 	GetOrgs(filter OrgFilter) ([]models.Org, error)
 	GetOrgByID(orgID int) (*models.Org, error)
