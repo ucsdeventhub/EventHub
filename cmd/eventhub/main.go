@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/ucsdeventhub/EventHub/accesscontrol"
 	"github.com/ucsdeventhub/EventHub/database/sqlite"
 	"github.com/ucsdeventhub/EventHub/email/sendgrid"
 	"github.com/ucsdeventhub/EventHub/server"
@@ -36,6 +37,7 @@ func main() {
 				Lifetime: 180 * 24 * time.Hour,
 				Secret:   []byte("asd"),
 			},
+			AC: accesscontrol.DefaultProvider{},
 		},
 	}
 

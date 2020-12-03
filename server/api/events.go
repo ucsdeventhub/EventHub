@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ucsdeventhub/EventHub/database"
+	"github.com/ucsdeventhub/EventHub/models"
 )
 
 func (srv *Provider) GetEvents(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +20,7 @@ func (srv *Provider) GetEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validParams := []string{"orgs", "tags", "before", "after", "limit", "offset"}
+	validParams := []string{"name", "orgs", "tags", "before", "after", "limit", "offset"}
 L:
 	for k := range query {
 		for _, v := range validParams {
@@ -29,16 +31,22 @@ L:
 
 		// normally it doesn't matter, but since this endpoint has a lot of paramters
 		// this error is helpful for debugging
-		Error(w, err, "unknown query param " + k, http.StatusBadRequest)
+		Error(w, err, "unknown query param "+k, http.StatusBadRequest)
 		return
 	}
 
 	now := time.Now()
 	filter := database.EventFilter{
-		After: &now,
+		After:  &now,
 		Limit:  10,
 		Offset: 0,
 	}
+
+	nameStr := query.Get("name")
+	if nameStr != "" {
+		filter.Name = &nameStr
+	}
+
 
 	orgsStr := query.Get("orgs")
 	if orgsStr != "" {
@@ -137,14 +145,62 @@ func (srv *Provider) GetEventsID(w http.ResponseWriter, r *http.Request) {
 	OkJSON(w, event)
 }
 
-func (srv *Provider) GetEventsIDAnnouncements(w http.ResponseWriter, r *http.Request) {
+func (srv *Provider) PutEventsAnnouncements(w http.ResponseWriter, r *http.Request) {
 	eventID, err := EventIDToken.GetInt(r)
 	if err != nil {
 		Error(w, err, "could not get event id from path", http.StatusBadRequest)
 		return
 	}
 
-	event, err := srv.DB.NonTx(r.Context()).GetAnnouncementsByEventID(eventID)
+	{
+
+		event, err := srv.DB.NonTx(r.Context()).GetEventByID(eventID)
+		if err != nil {
+			Error(w, err, "error getting event from database", http.StatusInternalServerError)
+			return
+		}
+
+		tokenOrgs, ok := r.Context().Value(ctxKeyOrg).([]models.Org)
+		if !ok {
+			Error(w, nil, "error getting token value", http.StatusInternalServerError)
+			return
+		}
+
+		if !srv.AC.TokenOrgsCanEditEvent(tokenOrgs, event) {
+			Error(w, nil, "event does not belong to org", http.StatusForbidden)
+			return
+		}
+	}
+
+	anns := []models.Announcement{}
+	err = json.NewDecoder(r.Body).Decode(&anns)
+	r.Body.Close()
+	if err != nil {
+		Error(w, err, "couldn't parse request", http.StatusBadRequest)
+		return
+	}
+
+	for i := range anns {
+		anns[i].EventID = eventID
+	}
+
+	err = srv.DB.NonTx(r.Context()).UpsertAnnouncements(anns)
+	if err != nil {
+		Error(w, err, "error storing announcements in database", http.StatusInternalServerError)
+		return
+	}
+
+	NoContent(w)
+}
+
+func (srv *Provider) GetEventsAnnouncements(w http.ResponseWriter, r *http.Request) {
+	eventID, err := EventIDToken.GetInt(r)
+	if err != nil {
+		Error(w, err, "could not get event id from path", http.StatusBadRequest)
+		return
+	}
+
+	ann, err := srv.DB.NonTx(r.Context()).GetAnnouncementsByEventID(eventID)
 	if err != nil {
 		if errors.Is(err, database.ErrNoRows) {
 			Error(w, err, "event does not exist", http.StatusNotFound)
@@ -155,5 +211,149 @@ func (srv *Provider) GetEventsIDAnnouncements(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	OkJSON(w, ann)
+}
+
+func (srv *Provider) PostOrgsEvents(w http.ResponseWriter, r *http.Request) {
+	orgID, err := OrgIDToken.GetInt(r)
+	if err != nil {
+		Error(w, err, "could not get org id from path", http.StatusBadRequest)
+		return
+	}
+
+	{
+		// access control check
+		tokenOrgs, ok := r.Context().Value(ctxKeyOrg).([]models.Org)
+		if !ok {
+			Error(w, nil, "error getting token value", http.StatusInternalServerError)
+			return
+		}
+
+		if !srv.AC.TokenOrgsCanAddEventForOrg(tokenOrgs, orgID) {
+			Error(w, nil, "token not valid for org", http.StatusForbidden)
+			return
+		}
+	}
+
+	event := models.Event{}
+	err = json.NewDecoder(r.Body).Decode(&event)
+	r.Body.Close()
+	if err != nil {
+		Error(w, err, "couldn't parse request", http.StatusBadRequest)
+		return
+	}
+
+	event.OrgID = orgID
+
+	id, err := srv.DB.NonTx(r.Context()).UpsertEvent(&event)
+	if err != nil {
+		Error(w, err, "couln't store event in database", http.StatusInternalServerError)
+		return
+	}
+
+	event1, err := srv.DB.NonTx(r.Context()).GetEventByID(id)
+	if err != nil {
+		Error(w, err, "couldn't retrieve new event from database", http.StatusInternalServerError)
+		return
+	}
+
+	OkJSON(w, event1)
+	return
+}
+
+func (srv *Provider) PutEvents(w http.ResponseWriter, r *http.Request) {
+
+	eventID, err := EventIDToken.GetInt(r)
+	if err != nil {
+		Error(w, err, "could not get org id from path", http.StatusBadRequest)
+		return
+	}
+
+	event, err := srv.DB.NonTx(r.Context()).GetEventByID(eventID)
+	if err != nil {
+		if errors.Is(err, database.ErrNoRows) {
+			Error(w, err, "event does not exist",http.StatusNotFound)
+			return
+		}
+		Error(w, err, "error getting event from database", http.StatusInternalServerError)
+		return
+	}
+
+	{
+		tokenOrgs, ok := r.Context().Value(ctxKeyOrg).([]models.Org)
+		if !ok {
+			Error(w, nil, "error getting token value", http.StatusInternalServerError)
+			return
+		}
+
+		if !srv.AC.TokenOrgsCanEditEvent(tokenOrgs, event) {
+			Error(w, nil, "event does not belong to org", http.StatusForbidden)
+			return
+		}
+	}
+
+	orgID := event.OrgID
+
+	err = json.NewDecoder(r.Body).Decode(event)
+	r.Body.Close()
+	if err != nil {
+		Error(w, err, "couldn't parse request", http.StatusBadRequest)
+		return
+	}
+
+	event.ID = &eventID
+	event.OrgID = orgID
+
+	_, err = srv.DB.NonTx(r.Context()).UpsertEvent(event)
+	if err != nil {
+		Error(w, err, "couln't store event in database", http.StatusInternalServerError)
+		return
+	}
+
+	event, err = srv.DB.NonTx(r.Context()).GetEventByID(eventID)
+	if err != nil {
+		Error(w, err, "couldn't retrieve new event from database", http.StatusInternalServerError)
+		return
+	}
+
 	OkJSON(w, event)
+	return
+}
+
+func (srv *Provider) DeleteEvents(w http.ResponseWriter, r *http.Request) {
+
+	eventID, err := OrgIDToken.GetInt(r)
+	if err != nil {
+		Error(w, err, "could not get org id from path", http.StatusBadRequest)
+		return
+	}
+
+	{
+		// check access control rules
+
+		event, err := srv.DB.NonTx(r.Context()).GetEventByID(eventID)
+		if err != nil {
+			Error(w, err, "error getting event from database", http.StatusInternalServerError)
+			return
+		}
+
+		tokenOrgs, ok := r.Context().Value(ctxKeyOrg).([]models.Org)
+		if !ok {
+			Error(w, nil, "error getting token value", http.StatusInternalServerError)
+			return
+		}
+
+		if !srv.AC.TokenOrgsCanEditEvent(tokenOrgs, event) {
+			Error(w, nil, "event does not belong to org", http.StatusForbidden)
+			return
+		}
+	}
+
+	err = srv.DB.NonTx(r.Context()).DeleteEvent(eventID)
+	if err != nil {
+		Error(w, err, "error deleting event from database", http.StatusInternalServerError)
+		return
+	}
+
+	NoContent(w)
 }

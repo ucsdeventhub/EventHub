@@ -10,10 +10,26 @@ export default withRouter(class Event extends Component {
             this.state = props.model;
         }
 
+        if (props.newForOrg) {
+            this.state = {
+                event: {
+                    name: "New Event",
+                    orgID: parseInt(props.newForOrg, 10),
+                    startTime: new Date().toISOString(),
+                    endTime: new Date().toISOString(),
+                    location: "",
+                    description: "",
+                },
+            };
+        }
+
+        this.handleEditSubmit = this.handleEditSubmit.bind(this);
+
         console.log("in cons: ", props);
     }
 
     async componentDidMount() {
+
         if (!this.state) {
             const event = await eventhub.getEvent(this.props.eventID);
             this.setState({ event });
@@ -21,13 +37,23 @@ export default withRouter(class Event extends Component {
 
         if (!this.state.org) {
             const org = await eventhub.getOrg(this.state.event.orgID);
+
             this.setState({
                 org,
                 ...this.state,
             });
+
+            const sorgs = await eventhub.getOrgsSelf();
+            if (sorgs.filter((org1) => org1.id == org.id).length) {
+                this.setState({
+                    editable: true,
+                    ...this.state,
+                });
+            }
         }
 
-        if (!this.props.preview && !this.state.announcements) {
+
+        if (!this.props.preview && !this.props.newForOrg && !this.state.announcements) {
             const announcements = await eventhub.getEventAnnouncements(this.state.event.id);
             console.log("got announcements: ", announcements);
             this.setState({
@@ -55,51 +81,75 @@ export default withRouter(class Event extends Component {
                             <td className="event-detail-field">On: </td>
                             <td>{this.state.event.startTime}</td>
                         </tr>
+                        <tr>
+                            <td className="event-detail-field">At: </td>
+                            <td>{this.state.event.location}</td>
+                        </tr>
+                        <tr>
+                            <td className="event-detail-field">Tags: </td>
+                            <td>{this.state.event.tags.join(", ")}</td>
+                        </tr>
                     </tbody>
                 </table>
             </>
         );
     }
 
+    async handleEditSubmit(evt) {
+
+        evt.preventDefault();
+        // TODO: send to api
+        let eventID;
+        if (this.props.newForOrg) {
+            const res = await eventhub.postOrgEvent(this.state.event);
+            eventID = res.id;
+
+        } else {
+            await eventhub.putEvent(this.state.event);
+            await eventhub.putEventAnnouncements(this.state.event.id, this.state.announcements);
+            eventID = this.state.event.id
+        }
+
+        this.setState({});
+        this.props.history.push(`/events/${eventID}`);
+    }
+
     edit() {
-        const announcements = this.state.announcements.map((a, i) => (
-            <Fragment key={i}>
-                <label className="event-edit-field" htmlFor={`announcement-${i}`}>{a.date}</label>
+        console.log("creating ann", this.state.announcements);
+        let announcements = null;
+        if (this.state.announcements) {
+            announcements = this.state.announcements.map((a, i) => (
+                <Fragment key={i}>
+                    <label className="edit-field" htmlFor={`announcement-${i}`}>{a.created}</label>
 
-                <textarea
-                    form="event-edit-form"
-                    name={`annoucement-${i}`}
-                    value={a.body}
-                    onChange={(evt) => {
-                        this.state.announcements[i].body = evt.target.value;
+                    <textarea
+                        form="event-edit-form"
+                        name={`annoucement-${i}`}
+                        value={a.announcement}
+                        onChange={(evt) => {
+                            this.state.announcements[i].body = evt.target.value;
 
-                        this.setState({
-                            ...this.state,
-                        })
-                    }}/>
+                            this.setState({
+                                ...this.state,
+                            })
+                        }}/>
 
-            </Fragment>
-        ));
+                </Fragment>
+            ));
+        }
 
             console.log(this.props);
             console.log(this.state);
 
-        const submitForm = (evt) => {
-            evt.preventDefault();
-            // TODO: send to api
-
-            this.props.history.push(`/events/${this.props.eventID}`);
-        }
-
 
         return (
-            <div>
+            <>
                 <h1>
                     Edit: {this.state.event.name}
                 </h1>
 
-                <form id="event-edit-form" onSubmit={submitForm}>
-                    <label className="event-edit-field" >Event Name
+                <form id="event-edit-form" onSubmit={this.handleEditSubmit}>
+                    <label className="edit-field" >Event Name
                         <input
                             name="event-name"
                             type="text"
@@ -113,7 +163,7 @@ export default withRouter(class Event extends Component {
                             }}/>
                     </label>
 
-                    <label className="event-edit-field">Starting at
+                    <label className="edit-field">Starting at
                         {/*
                             datetime-local has a widget for all mobile browsers but only on
                             chrome for desktop
@@ -131,7 +181,7 @@ export default withRouter(class Event extends Component {
                             }}/>
                     </label>
 
-                    <label className="event-edit-field">Until
+                    <label className="edit-field">Until
                         {/*
                             datetime-local has a widget for all mobile browsers but only on
                             chrome for desktop
@@ -149,7 +199,7 @@ export default withRouter(class Event extends Component {
                             }}/>
                     </label>
 
-                    <label className="event-edit-field">Located at
+                    <label className="edit-field">Located at
                         <input
                             name="location"
                             type="text"
@@ -163,7 +213,7 @@ export default withRouter(class Event extends Component {
                             }}/>
                     </label>
 
-                    <label className="event-edit-field" htmlFor="description">Description</label>
+                    <label className="edit-field" htmlFor="description">Description</label>
 
                     <textarea
                         form="event-edit-form"
@@ -182,25 +232,24 @@ export default withRouter(class Event extends Component {
                         with the form, therefore it is not an input
                     */}
 
-                    {!this.state.hasNewAnnouncement && (<button className="event-edit-field"
+                    {!this.props.newForOrg && !this.state.hasNewAnnouncement && (<button className="edit-field"
                         type="button"
                         onClick={() => {
-                            let a = this.state.announcements;
+                            let a = this.state.announcements || [];
 
                             a.unshift({
-                                date: new Date().toISOString(),
-                                body: "New announcement",
+                                created: new Date().toISOString(),
+                                announcement: "New announcement",
                             });
 
 
                             this.setState({
-                                ...this.state,
                                 announcements: a,
                                 hasNewAnnouncement: true,
                             });
 
                         }}>New Announcement</button>)}
-                    { this.state.hasNewAnnouncement && (<button className="event-edit-field"
+                    { !this.props.newForOrg && this.state.hasNewAnnouncement && (<button className="edit-field"
                         type="button"
                         onClick={() => {
                             let a = this.state.announcements;
@@ -217,10 +266,10 @@ export default withRouter(class Event extends Component {
 
                     {announcements}
 
-                    <input className="event-edit-field" type="submit"/>
+                    <input className="edit-field" type="submit"/>
 
                 </form>
-            </div>
+            </>
         );
     }
 
@@ -235,7 +284,7 @@ export default withRouter(class Event extends Component {
             return this.preview();
         }
 
-        if (this.props.edit) {
+        if (this.props.edit || this.props.newForOrg) {
             return this.edit()
         }
 
@@ -251,6 +300,9 @@ export default withRouter(class Event extends Component {
 
         return (
             <div>
+                {this.state.editable && (
+                    <a className="editLink" href={`/events/${this.state.event.id}/edit`}>edit</a>
+                )}
                 <h1>
                     {this.state.event.name}
                 </h1>

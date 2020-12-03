@@ -1,9 +1,10 @@
 import { Fragment, Component } from "react";
 import { Link, withRouter } from "react-router-dom";
+import Event from "./Event";
 import eventhub from "../lib/eventhub";
 import queryparser from "../lib/queryparser";
 
-export default class Event extends Component {
+export default class Search extends Component {
     constructor(props) {
         super(props);
 
@@ -27,15 +28,21 @@ export default class Event extends Component {
         q += `name=${obj.query}`
 
 
-        const results = eventhub.getEventsRaw(q);
+        const results = await eventhub.getEventsRaw(q);
         this.setState({results, ...this.state});
     }
 
     render() {
         let results = null;
         if (this.state.results) {
-            results = this.state.results.map();
-            // TODO
+            console.log(this.state.results);
+            results = this.state.results.map((event, i) => {
+                return (
+                    <li key={i} className="evenet-preview-wide no-scroll-item">
+                        <Event preview model={{event}} />
+                    </li>
+                );
+            });
         }
 
         // TODO: add more suggestions
@@ -44,6 +51,7 @@ export default class Event extends Component {
                 <form onSubmit={this.submitQuery}>
                     <input
                         name="event-search"
+                        list="event-search-list"
                         type="text"
                         value={this.state.query}
                         onChange={(evt) => {
@@ -51,16 +59,16 @@ export default class Event extends Component {
                                 query: evt.target.value,
                             });
                         }} />
-                    <datalist>
+                    <datalist id="event-search-list">
                         <option value="tags:games" />
                         <option value="before:2020-12-30" />
                         <option value="after:today" />
                     </datalist>
                     <input type="submit" />
                 </form>
-                <li>
+                <ul>
                     {results}
-                </li>
+                </ul>
             </>
         );
     }

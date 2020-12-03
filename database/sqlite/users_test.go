@@ -34,7 +34,7 @@ func TestUserFavoriteTag(t *testing.T) {
 	db := getTestFactory(t).NonTx(context.Background())
 
 	t.Log(db.GetUserByID(1))
-	t.Log(db.AddUserTagFavorite(1, "sports"))
+	t.Log(db.UpsertUserTagFavorite(1, "sports"))
 	t.Log(db.GetUserByID(1))
 	t.Log(db.DeleteUserTagFavorite(1, "sports"))
 	t.Log(db.GetUserByID(1))

@@ -28,6 +28,16 @@ used in the email verification step.
 Testing still needs to be written; but for now a DB test suite allows for
 simple visual confimation that operations are executed correctly.
 
+### Testing credentials
+
+There is a hard coded organiztion-associated user in the database and dev
+deployment. The verification code for this user is also hard coded.
+
+```
+email: test-org@ucsd.edu
+code: 1010
+```
+
 ## Architecture
 
 The server architechture makes heavy use of the

@@ -17,7 +17,6 @@ func orgsFromRows(rows *sql.Rows) ([]models.Org, error) {
 	id2idx := map[int]int{}
 	ret := []models.Org{}
 
-
 	var org models.Org
 	for rows.Next() {
 		var tag sql.NullString
@@ -179,9 +178,8 @@ func (q *querierFacade) UpsertOrg(org *models.Org) (orgID int, err error) {
 		VALUES (?, ?, ?)
 		ON CONFLICT (id)
 		DO UPDATE SET
-			id = excluded.id,
 			name = excluded.name,
-			description = excluded.name;
+			description = excluded.description;
 		`
 
 	res, err := q.Exec(query, org.ID, org.Name, org.Description)
@@ -189,12 +187,16 @@ func (q *querierFacade) UpsertOrg(org *models.Org) (orgID int, err error) {
 		return 0, err
 	}
 
-	orgID64, err := res.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
+	if org.ID == nil {
+		orgID64, err := res.LastInsertId()
+		if err != nil {
+			return 0, err
+		}
 
-	orgID = int(orgID64)
+		orgID = int(orgID64)
+	} else {
+		orgID = *org.ID
+	}
 
 	args := []interface{}{}
 
@@ -207,7 +209,7 @@ func (q *querierFacade) UpsertOrg(org *models.Org) (orgID int, err error) {
 		return 0, nil
 	}
 
-	query = `INSERT INTO org_tags (org_id, tags)
+	query = `INSERT INTO org_tags (org_id, tag_id)
 		VALUES (?, ?)`
 
 	args = append(args, orgID, org.Tags[0])
@@ -217,6 +219,9 @@ func (q *querierFacade) UpsertOrg(org *models.Org) (orgID int, err error) {
 		args = append(args, orgID, v)
 	}
 	query += ";"
+
+	log.Println(query)
+	log.Println(args)
 
 	_, err = q.Exec(query, args...)
 	return orgID, err

@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { withRouter } from "react-router-dom";
 
 import Event from "./Event";
 import eventhub from "../lib/eventhub";
@@ -58,15 +59,68 @@ class OrgEventList extends Component {
     }
 };
 
-export default class Org extends Component {
+export default withRouter(class Org extends Component {
     constructor(props) {
         super(props);
+
+        this.handleEditSubmit = this.handleEditSubmit.bind(this);
     }
 
     async componentDidMount() {
         console.log("eventhub: ", eventhub);
         const org = await eventhub.getOrg(this.props.orgID);
         this.setState(org);
+
+        const sorgs = await eventhub.getOrgsSelf();
+        if (sorgs.filter((org1) => org1.id == org.id).length) {
+            this.setState({
+                editable: true,
+                ...this.state,
+            });
+        }
+    }
+
+    handleEditSubmit(evt) {
+        evt.preventDefault();
+
+        eventhub.putOrg(this.state);
+
+        this.setState({});
+        this.props.history.push(`/orgs/${this.state.id}`);
+    }
+
+    edit() {
+        return (
+            <>
+                <h1>
+                    Edit: {this.state.name}
+                </h1>
+                <form id="org-edit-form" onSubmit={this.handleEditSubmit}>
+                    <label className="edit-field">Org Name
+                        <input
+                            name="org-name"
+                            type="text"
+                            value={this.state.name}
+                            onChange={(evt) => {
+                                this.state.name = evt.target.value;
+                                this.setState({...this.state});
+                            }}/>
+                    </label>
+                    <label className="edit-field">Org Description
+                        <input
+                            name="org-description"
+                            type="text"
+                            value={this.state.description}
+                            onChange={(evt) => {
+                                this.state.description = evt.target.value;
+                                this.setState({...this.state});
+                            }}/>
+                    </label>
+
+                    <input type="submit"/>
+                </form>
+            </>
+        )
     }
 
     imgSrc() {
@@ -78,8 +132,24 @@ export default class Org extends Component {
             return <div/>;
         }
 
+        if (this.props.edit) {
+            return this.edit()
+        }
+
+        if (this.props.newEvent) {
+            return
+        }
+
         return (
             <div>
+                {this.state.editable && (
+                    <a className="edit-link" href={`/orgs/${this.state.id}/edit`}>edit</a>
+                )}
+                {this.state.editable && (
+                    <a className="edit-link" href={`/orgs/${this.state.id}/new-event`}>new event</a>
+                )}
+                <br/>
+
                 <img src={this.imgSrc()} className="org-logo" />
                 <h1>{this.state.name}</h1>
                 <p>{this.state.description}</p>
@@ -87,4 +157,4 @@ export default class Org extends Component {
             </div>
         );
     }
-}
+});

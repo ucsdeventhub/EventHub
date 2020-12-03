@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi"
 
+	"github.com/ucsdeventhub/EventHub/accesscontrol"
 	"github.com/ucsdeventhub/EventHub/database"
 	"github.com/ucsdeventhub/EventHub/email"
 	"github.com/ucsdeventhub/EventHub/models"
@@ -70,6 +71,7 @@ type Provider struct {
 	Email        email.Provider
 	DB           database.Factory
 	Token        token.Provider
+	AC           accesscontrol.Provider
 }
 
 func (srv *Provider) Unimplemented(w http.ResponseWriter, r *http.Request) {
@@ -84,9 +86,10 @@ func New(router chi.Router, srv *Provider) {
 	router.Get(BuildRoute("events"), srv.GetEvents)
 	router.Get(BuildRoute("events", "trending"), srv.GetEventsTrending)
 	router.Get(BuildRoute("events", EventIDToken), srv.GetEventsID)
-	router.Get(BuildRoute("events", EventIDToken, "announcements"), srv.GetEventsIDAnnouncements)
+	router.Get(BuildRoute("events", EventIDToken, "announcements"), srv.GetEventsAnnouncements)
 	router.Get(BuildRoute("orgs"), srv.GetOrgs)
 	router.Get(BuildRoute("orgs", OrgIDToken), srv.GetOrgsID)
+	router.Get(BuildRoute("orgs", OrgIDToken, "logo"), srv.GetOrgsLogo)
 
 	// user authenticated routes
 	router.Group(func(router chi.Router) {
@@ -96,13 +99,13 @@ func New(router chi.Router, srv *Provider) {
 
 		router.Get(BuildRoute("users", UserIDToken), srv.GetUsersID)
 
-		router.Post(BuildRoute("users", UserIDToken, "orgs", OrgIDToken), srv.PostUsersOrgs)
+		router.Put(BuildRoute("users", UserIDToken, "orgs", OrgIDToken), srv.PutUsersOrgs)
 		router.Delete(BuildRoute("users", UserIDToken, "orgs", OrgIDToken), srv.DeleteUsersOrgs)
 
-		router.Post(BuildRoute("users", UserIDToken, "events", EventIDToken), srv.PostUsersEvents)
+		router.Put(BuildRoute("users", UserIDToken, "events", EventIDToken), srv.PutUsersEvents)
 		router.Delete(BuildRoute("users", UserIDToken, "events", EventIDToken), srv.DeleteUsersEvents)
 
-		router.Post(BuildRoute("users", UserIDToken, "tags", TagIDToken), srv.PostUsersTags)
+		router.Put(BuildRoute("users", UserIDToken, "tags", TagIDToken), srv.PutUsersTags)
 		router.Delete(BuildRoute("users", UserIDToken, "tags", TagIDToken), srv.DeleteUsersTags)
 	})
 
@@ -112,10 +115,13 @@ func New(router chi.Router, srv *Provider) {
 			NewOrgJWTMiddleware(srv.DB, srv.Token),
 		)
 
-		router.Post(BuildRoute("org", OrgIDToken), srv.Unimplemented)
+		router.Get(BuildRoute("orgs", "self"), srv.GetOrgsSelf)
 
-		router.Post(BuildRoute("org", OrgIDToken, "events"), srv.Unimplemented)
-		router.Put(BuildRoute("org", OrgIDToken, "events", EventIDToken), srv.Unimplemented)
-		router.Delete(BuildRoute("org", OrgIDToken, "events", EventIDToken), srv.Unimplemented)
+		router.Put(BuildRoute("orgs", OrgIDToken), srv.PutOrgs)
+
+		router.Post(BuildRoute("org", OrgIDToken, "events"), srv.PostOrgsEvents)
+		router.Put(BuildRoute("events", EventIDToken), srv.PutEvents)
+		router.Delete(BuildRoute("events", EventIDToken), srv.DeleteEvents)
+		router.Put(BuildRoute("events", EventIDToken, "announcements" ), srv.PutEventsAnnouncements)
 	})
 }

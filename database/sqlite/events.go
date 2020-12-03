@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 func eventsFromRows(rows *sql.Rows) ([]models.Event, error) {
 	id2idx := map[int]int{}
 	ret := []models.Event{}
-
 
 	var event models.Event
 	for rows.Next() {
@@ -36,8 +36,14 @@ func eventsFromRows(rows *sql.Rows) ([]models.Event, error) {
 		}
 
 		idx, ok := id2idx[*event.ID]
-		if ok {
+		if ok && tag.Valid {
+			for _, v := range ret[idx].Tags {
+				if v == tag.String {
+					goto L
+				}
+			}
 			ret[idx].Tags = append(ret[idx].Tags, tag.String)
+			L:
 		} else {
 			if tag.Valid {
 				event.Tags = []string{tag.String}
@@ -88,6 +94,18 @@ func (q querierFacade) GetEvents(filter database.EventFilter) ([]models.Event, e
 			args1[i] = v
 		}
 		addWhere("e.org_id in "+sqlList(len(orgs)), args1...)
+	}
+
+	if filter.Name != nil {
+		names := strings.Split(*filter.Name, " ")
+		if len(names) > 4 {
+			names = names[:4]
+		}
+
+		for _, v := range names {
+			v = strings.Replace(v, "%", "", -1)
+			addWhere("e.name LIKE ?", "%" + v + "%")
+		}
 	}
 
 	query := fmt.Sprintf(`
@@ -254,7 +272,78 @@ func (q querierFacade) GetEventByID(eventID int) (*models.Event, error) {
 }
 
 func (q querierFacade) UpsertEvent(event *models.Event) (eventID int, err error) {
-	panic("unimplemented")
+	query := `INSERT INTO events (
+		id,
+		org_id,
+		name,
+		description,
+		start_time,
+		end_time
+	) VALUES
+	(?, ?, ?, ?, ?, ?)
+	ON CONFLICT (id) DO UPDATE SET
+		name = excluded.name,
+		description = excluded.description,
+		start_time = excluded.start_time,
+		end_time = excluded.end_time;
+	`
+
+
+	res, err := q.Exec(query,
+		event.ID,
+		event.OrgID,
+		event.Name,
+		event.Description,
+		event.StartTime,
+		event.EndTime,
+	)
+	if err != nil {
+		return 0, err
+	}
+	if event.ID != nil {
+		eventID = *event.ID
+	} else {
+		eventID64, err := res.LastInsertId()
+		if err != nil {
+			return 0, err
+		}
+		eventID = int(eventID64)
+	}
+
+	if len(event.Tags) == 0 {
+		return eventID, nil
+	}
+
+	tags := "(" + strconv.Itoa(eventID) + ", ?)"
+	tags = tags +
+		strings.Repeat(",\n"+tags, len(event.Tags) - 1)
+
+	query = fmt.Sprintf(`INSERT INTO event_tags (event_id, tag_id)
+	VALUES
+		%s
+	ON CONFLICT (event_id, tag_id) DO NOTHING
+	;`, tags)
+
+	varr := make([]interface{}, len(event.Tags))
+	for i, v := range event.Tags {
+		varr[i] = v
+	}
+
+	log.Println(query)
+
+	_, err = q.Exec(query, varr...)
+	return eventID, err
+
+}
+
+func (q querierFacade) DeleteEvent(eventID int) error {
+	query := `UPDATE events (deleted)
+	VALUES (datetime('now'))
+	WHERE events.id = ?;
+	`
+
+	_, err := q.Exec(query, eventID)
+	return err
 }
 
 func (q querierFacade) GetAnnouncementsByEventID(eventID int) ([]models.Announcement, error) {
@@ -271,7 +360,9 @@ func (q querierFacade) GetAnnouncementsByEventID(eventID int) ([]models.Announce
 	WHERE
 		a.event_id = ?
 	AND
-		a.deleted IS NULL;
+		a.deleted IS NULL
+	ORDER BY
+		a.created DESC;
 	`
 
 	rows, err := q.Query(query, eventID)
@@ -297,4 +388,43 @@ func (q querierFacade) GetAnnouncementsByEventID(eventID int) ([]models.Announce
 	}
 
 	return ret, nil
+}
+
+func (q querierFacade) UpsertAnnouncements(anns []models.Announcement) error {
+	if len(anns) == 0 {
+		return nil
+	}
+
+	args := make([]interface{}, 0, 3 * len(anns))
+	vals := make([]string, 0, len(anns))
+	for  _, v := range anns {
+		args = append(args, v.EventID, v.Announcement, v.Created)
+		vals = append(vals, "(?, ?, ?)")
+	}
+
+	valsStr := strings.Join(vals, ",\n")
+
+	query := fmt.Sprintf(`INSERT INTO event_announcements (event_id, announcement, created)
+	VALUES
+		%s
+	ON CONFLICT (event_id, created) DO UPDATE SET
+		announcement=excluded.announcement;`, valsStr)
+
+		log.Println(query)
+
+	_, err := q.Exec(query, args...)
+	return err
+}
+
+func (q querierFacade) DeleteAnnouncement(eventID int, created time.Time) error {
+	query := `UPDATE event_announcements (deleted)
+	VALUES (datetime('now'))
+	WHERE
+		event_id = ?
+	AND
+		created = ?;
+	`
+
+	_, err := q.Exec(query, eventID, created)
+	return err
 }

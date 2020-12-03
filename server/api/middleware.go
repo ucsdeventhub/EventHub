@@ -67,6 +67,11 @@ func NewOrgJWTMiddleware(db database.Factory,
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			header := r.Header.Get("Authorization")
 
+			if !strings.HasPrefix(header, "Bearer") {
+				http.Error(w, "Authorization header must have a bearer token", http.StatusBadRequest)
+				return
+			}
+
 			_, tokenOrgs, err := token.Verify(header[len("Bearer "):])
 			if err != nil {
 				log.Println(err)
@@ -84,12 +89,7 @@ func NewOrgJWTMiddleware(db database.Factory,
 				orgIDs[i] = *v.ID
 			}
 
-
 			orgs, err := db.NonTx(r.Context()).GetOrgs(database.OrgFilter{IDs: orgIDs })
-
-			if err != nil {
-				log.Println(err)
-			}
 			if err != nil {
 				log.Println(err)
 				http.Error(w,
@@ -98,10 +98,13 @@ func NewOrgJWTMiddleware(db database.Factory,
 				return
 			}
 
+			log.Println("orgs: ", orgs)
+			log.Println("tokenOrgs: ", tokenOrgs)
+
 		L:
 			for _, v := range orgs {
 				for _, vv := range tokenOrgs {
-					if v.ID == vv.ID {
+					if *v.ID == *vv.ID {
 						if v.TokenVersion != vv.TokenVersion {
 							log.Println("token version out of date")
 							http.Error(w, "invalid token", http.StatusUnauthorized)
@@ -112,6 +115,7 @@ func NewOrgJWTMiddleware(db database.Factory,
 					}
 
 					http.Error(w, "invalid token", http.StatusUnauthorized)
+					return
 				}
 			}
 
