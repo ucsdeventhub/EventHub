@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 import libuser from "../lib/user";
 import eventhub from "../lib/eventhub";
 
@@ -112,7 +112,7 @@ class LoginModal extends Component {
     }
 }
 
-export default class Header extends Component {
+export default withRouter(class Header extends Component {
     constructor(props) {
         super(props)
 
@@ -158,6 +158,8 @@ export default class Header extends Component {
             user: null,
             showLogin: this.state.showLogin,
         });
+
+        this.props.history.push("/");
     }
 
     render() {
@@ -200,5 +202,5 @@ export default class Header extends Component {
             </header>
         );
     }
-}
+})
 

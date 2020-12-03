@@ -33,8 +33,10 @@ type Provider interface {
 	GetEventByID(eventID int) (*models.Event, error)
 	GetTrendingEvents() ([]models.Event, error)
 	UpsertEvent(event *models.Event) (eventID int, err error)
+	DeleteEvent(eventID int) error
 
 	GetAnnouncementsByEventID(eventID int) ([]models.Announcement, error)
+	UpsertAnnouncements([]models.Announcement) error
 
 	// Org queries
 	GetOrgs(filter OrgFilter) ([]models.Org, error)
@@ -50,9 +52,9 @@ type Provider interface {
 	// that is, not the user's favorites
 	UpsertUser(user *models.User) (userID int, err error)
 
-	AddUserTagFavorite(userID int, tagID string) (err error)
-	AddUserOrgFavorite(userID int, orgID int) (err error)
-	AddUserEventFavorite(userID int, eventID int) (err error)
+	UpsertUserTagFavorite(userID int, tagID string) (err error)
+	UpsertUserOrgFavorite(userID int, orgID int) (err error)
+	UpsertUserEventFavorite(userID int, eventID int) (err error)
 	DeleteUserTagFavorite(userID int, tagID string) (err error)
 	DeleteUserOrgFavorite(userID int, orgID int) (err error)
 	DeleteUserEventFavorite(userID int, eventID int) (err error)
@@ -68,6 +70,7 @@ type EventFilter struct {
 	Before *time.Time
 	Limit  int
 	Offset int
+	Name   *string
 	Tags   []string
 	Orgs   []int
 }

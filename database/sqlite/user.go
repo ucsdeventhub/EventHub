@@ -162,7 +162,7 @@ func (q *querierFacade) UpsertUser(user *models.User) (userID int, err error) {
 	return userID, nil
 }
 
-func (q *querierFacade) AddUserTagFavorite(userID int, tagID string) (err error) {
+func (q *querierFacade) UpsertUserTagFavorite(userID int, tagID string) (err error) {
 	// TODO: add a unique constriaint to the table?
 	_, err = q.Exec(`INSERT INTO
 		user_tag_favorites (user_id, tag_id)
@@ -173,7 +173,7 @@ func (q *querierFacade) AddUserTagFavorite(userID int, tagID string) (err error)
 	return err
 }
 
-func (q *querierFacade) AddUserOrgFavorite(userID int, orgID int) (err error) {
+func (q *querierFacade) UpsertUserOrgFavorite(userID int, orgID int) (err error) {
 	// TODO: add a unique constriaint to the table?
 	_, err = q.Exec(`INSERT INTO
 		user_org_favorites (user_id, org_id)
@@ -184,7 +184,7 @@ func (q *querierFacade) AddUserOrgFavorite(userID int, orgID int) (err error) {
 	return err
 }
 
-func (q *querierFacade) AddUserEventFavorite(userID int, eventID int) (err error) {
+func (q *querierFacade) UpsertUserEventFavorite(userID int, eventID int) (err error) {
 	// TODO: add a unique constriaint to the table?
 	_, err = q.Exec(`INSERT INTO
 		user_event_favorites (user_id, event_id)

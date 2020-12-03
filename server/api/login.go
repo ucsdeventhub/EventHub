@@ -40,7 +40,7 @@ func (srv *Provider) Login(w http.ResponseWriter, r *http.Request) {
 	qcode := query.Get("code")
 
 	srv.DB.WithTx(r.Context(), func(db database.TxProvider) error {
-		if len(qcode) == 0 {
+		if len(qcode) == 0 { // step 1, send email
 
 			var newEmail bool
 			{
@@ -103,6 +103,11 @@ func (srv *Provider) Login(w http.ResponseWriter, r *http.Request) {
 				return nil
 			}
 
+			if !srv.IsProduction && qemail == "test@ucsd.edu" {
+				NoContent(w)
+				return nil
+			}
+
 			var msg string
 
 			if newEmail {
@@ -135,7 +140,7 @@ Here's your verification code:
 			NoContent(w)
 			return nil
 
-		} else {
+		} else { // step 2
 			code, err := db.GetTokenRequestByEmail(qemail)
 			if err != nil {
 				Error(w, err, "incorrect code", http.StatusBadRequest)
@@ -144,7 +149,7 @@ Here's your verification code:
 
 			// dev backdoor
 			log.Println("code: ", qcode)
-			if srv.IsProduction || qcode != "1010" {
+			if srv.IsProduction || qemail != "test-org@ucsd.edu" {
 				if code != qcode {
 					Error(w, err, "incorrect code", http.StatusBadRequest)
 					return nil
@@ -153,6 +158,12 @@ Here's your verification code:
 				err := db.DeleteTokenRequestByEmail(qemail)
 				if err != nil {
 					Error(w, err, "internal server error", http.StatusInternalServerError)
+					return nil
+				}
+			} else {
+				// !prod and qemail is test-org@ucsd.edu
+				if qcode != "1010" {
+					Error(w, err, "incorrect code", http.StatusBadRequest)
 					return nil
 				}
 			}

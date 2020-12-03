@@ -33,6 +33,14 @@ function App() {
                 )} />
 
 
+                <Route path="/orgs/:orgID/edit" render={({match}) => (
+                    <Org edit orgID={match.params.orgID} />
+                )} />
+
+                <Route path="/orgs/:orgID/new-event" render={({match}) => (
+                    <Event newForOrg={match.params.orgID} />
+                )} />
+
                 <Route path="/orgs/:orgID" render={({match}) => (
                     <Org orgID={match.params.orgID} />
                 )} />

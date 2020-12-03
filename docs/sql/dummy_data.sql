@@ -11,7 +11,8 @@ VALUES
 INSERT INTO org_emails (org_id, email)
 VALUES
 	(1, 'coolorg@ucsd.edu'),
-	(2, 'lameorg@ucsd.edu');
+	(2, 'lameorg@ucsd.edu'),
+	(1, 'test-org@ucsd.edu');
 
 INSERT INTO org_tags (tag_id, org_id)
 VALUES

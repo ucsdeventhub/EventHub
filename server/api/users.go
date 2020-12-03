@@ -35,7 +35,7 @@ func (srv *Provider) GetUsersID(w http.ResponseWriter, r *http.Request) {
 // Orgs
 //
 
-func (srv *Provider) PostUsersOrgs(w http.ResponseWriter, r *http.Request) {
+func (srv *Provider) PutUsersOrgs(w http.ResponseWriter, r *http.Request) {
 	userID, err := UserIDToken.GetInt(r)
 	if err != nil {
 		Error(w, err, "could not get user id from path", http.StatusBadRequest)
@@ -48,7 +48,7 @@ func (srv *Provider) PostUsersOrgs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = srv.DB.NonTx(r.Context()).AddUserOrgFavorite(userID, orgID)
+	err = srv.DB.NonTx(r.Context()).UpsertUserOrgFavorite(userID, orgID)
 	if err != nil {
 		if errors.Is(err, database.ErrFK) {
 			// there is a chance that this could actually be triggered by an
@@ -90,7 +90,7 @@ func (srv *Provider) DeleteUsersOrgs(w http.ResponseWriter, r *http.Request) {
 // Events
 //
 
-func (srv *Provider) PostUsersEvents(w http.ResponseWriter, r *http.Request) {
+func (srv *Provider) PutUsersEvents(w http.ResponseWriter, r *http.Request) {
 	userID, err := UserIDToken.GetInt(r)
 	if err != nil {
 		Error(w, err, "could not get user id from path", http.StatusBadRequest)
@@ -103,7 +103,7 @@ func (srv *Provider) PostUsersEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = srv.DB.NonTx(r.Context()).AddUserEventFavorite(userID, eventID)
+	err = srv.DB.NonTx(r.Context()).UpsertUserEventFavorite(userID, eventID)
 	if err != nil {
 		if errors.Is(err, database.ErrFK) {
 			// there is a chance that this could actually be triggered by an
@@ -145,7 +145,7 @@ func (srv *Provider) DeleteUsersEvents(w http.ResponseWriter, r *http.Request) {
 // Tags
 //
 
-func (srv *Provider) PostUsersTags(w http.ResponseWriter, r *http.Request) {
+func (srv *Provider) PutUsersTags(w http.ResponseWriter, r *http.Request) {
 	userID, err := UserIDToken.GetInt(r)
 	if err != nil {
 		Error(w, err, "could not get user id from path", http.StatusBadRequest)
@@ -158,7 +158,7 @@ func (srv *Provider) PostUsersTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = srv.DB.NonTx(r.Context()).AddUserTagFavorite(userID, tagID)
+	err = srv.DB.NonTx(r.Context()).UpsertUserTagFavorite(userID, tagID)
 	if err != nil {
 		if errors.Is(err, database.ErrFK) {
 			// there is a chance that this could actually be triggered by an

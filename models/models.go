@@ -22,7 +22,7 @@ type Event struct {
 }
 
 type Announcement struct {
-	EventID      int       `json:"id"`
+	EventID      int       `json:"eventId"`
 	Announcement string    `json:"announcement"`
 	Created      time.Time `json:"created"`
 }
@@ -37,10 +37,12 @@ type Org struct {
 }
 
 type User struct {
-	ID             *int     `json:"id"`
-	Email          string   `json:"email"`
-	TokenVersion   int      `json:"tokenVersion"`
-	TagFavorites   []string `json:"tagFavorites"`
-	OrgFavorites   []int    `json:"orgFavorites"`   // foreign key ref to Org.ID
-	EventFavorites []int    `json:"eventFavorites"` // eve
+	ID               *int     `json:"id"`
+	Email            string   `json:"email"`
+	TokenVersion     int      `json:"tokenVersion"`
+	TagFavorites     []string `json:"tagFavorites"`
+	OrgFavorites     []int    `json:"orgFavorites"`   // foreign key ref to Org.ID
+	EventFavorites   []int    `json:"eventFavorites"`
+	// time before event reminder, in nano seconds
+	PreEventReminder time.Duration `json:"preEventReminder"`
 }

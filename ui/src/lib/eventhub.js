@@ -65,13 +65,14 @@ class Client {
 
 
 		case POST:
-			return (await axios.post(url, {
+			return (await axios.post(url, body, {
 				url,
 				headers,
 			})).data;
 
 		case PUT:
-			return (await axios.put(url, {
+                console.log("PUT", headers);
+			return (await axios.put(url, body, {
 				url,
 				headers,
 			})).data;
@@ -192,10 +193,36 @@ class Client {
 	}
 
 	async getUsersSelf() {
-		let route = "/users/self";
+		const route = "/users/self";
 
 		return await this.request(GET, route, true);
 	}
+
+    async postOrgEvent(event) {
+        const route = `/org/${event.orgID}/events`
+
+		return await this.request(POST, route, true, event);
+    }
+    async putEvent(event) {
+        const route = `/events/${event.id}`
+
+		return await this.request(PUT, route, true, event);
+    }
+
+    async putEventAnnouncements(eventId, ann) {
+        console.log("putAnn: ", eventId);
+        const route = `/events/${eventId}/announcements`
+        console.log(route);
+
+		return await this.request(PUT, route, true, ann || []);
+    }
+
+    async putOrg(org) {
+        const route = `/orgs/${org.id}`
+
+		return await this.request(PUT, route, true, org);
+    }
+
 }
 
 window.c = new Client(window.location.origin);

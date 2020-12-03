@@ -111,11 +111,11 @@ nav li > *:focus-within * {
     font-weight: bold;
 }
 
-.event-edit-field {
+.edit-field {
     display: block;
     margin: 8px;
 }
-.event-edit-field > input{
+.edit-field > input{
     margin: 8px;
 }
 
@@ -150,4 +150,8 @@ nav li > *:focus-within * {
     display: inline-block;
     margin: 10px;
     padding: 5px;
+}
+
+.edit-link {
+    padding: 3px;
 }
