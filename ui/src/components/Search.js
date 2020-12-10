@@ -1,5 +1,5 @@
 import { Fragment, Component } from "react";
-import { Link, withRouter } from "react-router-dom";
+// import { Link, withRouter } from "react-router-dom";
 import eventhub from "../lib/eventhub";
 import queryparser from "../lib/queryparser";
 
@@ -18,7 +18,7 @@ export default class Event extends Component {
         evt.preventDefault();
         const obj = queryparser.parse(this.state.query);
         let q = obj.filters.reduce((acc, el) => {
-            if (el.key == "after" && el.value == "today") {
+            if (el.key === "after" && el.value === "today") {
                 el.value = (new Date()).toISOString().slice(0, 10);
             }
             return `${acc}${el.key}=${el.value}&`
@@ -34,7 +34,7 @@ export default class Event extends Component {
     render() {
         let results = null;
         if (this.state.results) {
-            results = this.state.results.map();
+            results = this.state.results.map;
             // TODO
         }
 
