@@ -4,7 +4,6 @@ module.exports = /*
  * http://pegjs.org/
  */
 (function() {
-  "use strict";
 
   function peg$subclass(child, parent) {
     function ctor() { this.constructor = child; }
@@ -150,7 +149,7 @@ module.exports = /*
         peg$c6 = function(ws) { return ws; },
         peg$c7 = function(w) { return w.join(" "); },
         peg$c8 = function(w) { return w },
-        peg$c9 = /^[a-zA-Z0-9,\-]/,
+        peg$c9 = /^[a-zA-Z0-9,-]/,
         peg$c10 = peg$classExpectation([["a", "z"], ["A", "Z"], ["0", "9"], ",", "-"], false, false),
         peg$c11 = function() { return text(); },
         peg$c12 = peg$otherExpectation("whitespace"),
@@ -179,7 +178,8 @@ module.exports = /*
       return input.substring(peg$savedPos, peg$currPos);
     }
 
-    function location() {
+    // Below functions aren't used but are here in case they need to be used
+    /*function location() {
       return peg$computeLocation(peg$savedPos, peg$currPos);
     }
 
@@ -198,6 +198,12 @@ module.exports = /*
 
       throw peg$buildSimpleError(message, location);
     }
+    function peg$anyExpectation() {
+      return { type: "any" };
+    }
+    function peg$buildSimpleError(message, location) {
+      return new peg$SyntaxError(message, null, null, location);
+    }*/
 
     function peg$literalExpectation(text, ignoreCase) {
       return { type: "literal", text: text, ignoreCase: ignoreCase };
@@ -205,10 +211,6 @@ module.exports = /*
 
     function peg$classExpectation(parts, inverted, ignoreCase) {
       return { type: "class", parts: parts, inverted: inverted, ignoreCase: ignoreCase };
-    }
-
-    function peg$anyExpectation() {
-      return { type: "any" };
     }
 
     function peg$endExpectation() {
@@ -279,10 +281,6 @@ module.exports = /*
       }
 
       peg$maxFailExpected.push(expected);
-    }
-
-    function peg$buildSimpleError(message, location) {
-      return new peg$SyntaxError(message, null, null, location);
     }
 
     function peg$buildStructuredError(expected, found, location) {
