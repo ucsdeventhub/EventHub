@@ -36,16 +36,16 @@ const lib = new User();
 
 window.removeUser = () => lib.del();
 window.getUser = () => lib.get();
-/*
-window.setDefaultUser = () => lib.set({
+
+/*window.setDefaultUser = () => lib.set({
 	id: 1,
 	email: "abc@ucsd.edu",
 	tokenVersion: 1,
 	tagFavorites: ["asd"],
 	orgFavorites: [1, 2],
-	eventFavorites: [1, 2],
-});
-*/
+	eventFavorites: [2, 3, 4],
+});*/
+
 
 
 export default lib;

@@ -9,36 +9,56 @@ import eventhub from "../lib/eventhub";
 class Trending extends Component {
     constructor(props) {
         super(props)
-    }
 
-    async componentDidMount() {
-        if (!this.state) {
-            const events = await eventhub.getEventsTrending();
-            this.setState({events});
+        this.state = {
+            events: []
         }
     }
 
+    async componentDidMount() {
+        /*if (!this.state) {
+            const events = await eventhub.getEventsTrending();
+            this.setState({events});
+        }*/
+
+        let tempEvents = [];
+        const events = await eventhub.getEventsTrending();
+        console.log("Trending events: ", events);
+        for (let i = 0; i < events.length;  i++) {
+            tempEvents.push({
+                event: events[i]
+            });
+            this.setState({
+                events: tempEvents
+            });
+        }
+        
+    }
+
     render() {
-        if (!this.state) {
+        if (this.state.events.length === 0) {
             return <div/>;
         }
 
         console.log("trending state: ", this.state);
 
-        const events = this.state.events.map((event, i) => {
+        const events = this.state.events.map((element, i) => {
             return (
-                <li key={i} className="event-preview-wide no-scroll-item" >
-                    <Event preview model={{event}} />
-                </li>
+                <div className="col-sm-12">
+                     <Event preview model={element}/>
+                    {/*<div className="event-preview">
+                       
+            </div>*/}
+                </div>
             );
         });
 
         return (
             <>
-                <h2>Trending Events</h2>
-                <ol className="no-scroll-list">
+                <h2 className="heading">Trending Events</h2>
+                <div className="row">
                     {events}
-                </ol>
+                </div>
             </>
         );
 
@@ -72,6 +92,9 @@ class EventSideScroll extends Component {
             this.setState({events});
         }
 
+        // TODO: before fetching orgs, sort the events based on the start date and time in ascending order.
+        // Then retain only the 4 "earliest" events inside the state object. 
+
         console.log("about to fetch orgs:", this.state.events);
         let events = this.state.events;
         for (let i = 0; i < events.length; i++) {
@@ -91,16 +114,28 @@ class EventSideScroll extends Component {
 
         const events = this.state.events.map((event, i) => {
             return (
+                <div className="col-sm-12 col-md-6">
+                    <Event previewFav model={event}/>
+                    {/*<div className="event-preview">
+                        <Event previewFav model={event}/>
+            </div>*/}
+                </div>
+                /*
                 <li key={i} className="event-preview-square side-scroll-item">
                     <Event preview model={event} />
-                </li>
+                </li>*/
             );
         });
 
         return (
+            <div className="row">
+                {events}
+            </div>
+
+            /*
             <ol className="side-scroll-list">
                 {events}
-            </ol>
+            </ol>*/
         );
     }
 }
@@ -112,8 +147,11 @@ class WelcomeBanner extends Component {
 
     render() {
         return (
-            <div>
-                <h1>Welcome to Event Hub</h1>
+            <div className="jumbotron">
+                <div className="container">
+                    <img src="https://revelle.ucsd.edu/_images/about/prospective-students.jpg" className="img-fluid"/>
+                    <div>Welcome to EventHub!</div> 
+                </div>   
             </div>
         )
     }
@@ -140,7 +178,7 @@ export default class Home extends Component {
             <>
                 { user && user.eventFavorites.length && (
                     <>
-                        <h2>Favorited Events</h2>
+                        <h2 id="favorited-heading">Favorited Events</h2>
                         <EventSideScroll eventIDs={user.eventFavorites} />
                     </>
                 )}
@@ -148,7 +186,7 @@ export default class Home extends Component {
                 { user && ((user.tagFavorites &&user.tagFavorites.length)
                     || (user.orgFavorites && user.orgFavorites.length)) && (
                     <>
-                        <h2>Favorited Events</h2>
+                        <h2 className="heading">Events from favorited Orgs and Tags</h2>
                         <EventSideScroll
                             tagIDs={user.tagFavorites}
                             orgIDs={user.orgFavorites} />
@@ -167,17 +205,26 @@ export default class Home extends Component {
         const {user} = this.state;
 
 
-        let top;
+        let top = <div/>;
         if (user && (user.eventFavorites || user.tagFavorites || user.orgFavorites)) {
             top = this.userFavorites();
-        } else {
-            top = (<WelcomeBanner/>);
-        }
+        } 
+        //else {
+        //    top = (<WelcomeBanner/>);
+        //}
 
         return (
             <>
-                {top}
-                <Trending/>
+                <WelcomeBanner/>
+                <div className="container-fluid">
+                    <div id="new-btn-container">
+                        <button className="btn btn-primary" id="new-org-btn">
+                            New Org
+                        </button>
+                    </div> 
+                    {top}
+                    <Trending/>
+                </div>
             </>
         );
     }

@@ -1,4 +1,4 @@
-#nav-logo {
+/*#nav-logo {
     height: 50px;
     width: 50px;
     background-color: black;
@@ -150,4 +150,434 @@ nav li > *:focus-within * {
     display: inline-block;
     margin: 10px;
     padding: 5px;
+}*/
+
+html {
+    height: 100%;
+    width: 100%;
+    margin: 0px;
+    text-align: center;
+    background-color: white;
 }
+
+body {
+    width: 95%;
+    max-width: 1000px;
+    overflow: auto;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding: 10px;
+    display: inline-block;
+    text-align: initial;
+    background-color: white;
+    /*border: solid black 2px;*/
+    overflow-x: hidden;
+}
+
+
+/* FOR HEADER/NAVBAR: */
+.extendFull {
+	padding-left: 3000px;
+    margin-left: -3000px;
+    padding-right: 3000px;
+    margin-right: -3000px;
+    margin-top: -10px;
+}
+
+.navbar-light .navbar-nav .nav-link:hover, .navbar-light .navbar-nav .nav-link:focus {
+    color: #FFCD00;
+}
+
+.navbar {
+    background-color: #006a96;
+    /*border: 2px solid #FFCD00;*/;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    color: white;
+}
+
+.navbar-light .navbar-brand {
+    color: white;
+    font-size: 40px;
+}
+
+.navbar-light .navbar-brand:hover, .navbar-light .navbar-brand:focus {
+    color: #FFCD00;
+}
+
+.nav-link {
+    font-size: 22px;
+}
+
+#nav-button {
+    border: 1px solid white;;
+}
+
+.navbar-header button.navbar-toggler {
+    clear: both;
+    margin-top: -30px;
+}
+
+/* SIGN UP start*/
+.modal-login {
+    width: 450px;
+    margin: 30px auto;
+}
+.modal-login .modal-content {
+    padding: 20px;
+}
+
+.modal-login .modal-header {
+    border-bottom: none;
+    position: relative;
+    justify-content: center;
+}
+
+.modal-login .form-control{
+    margin-left: 0px;
+}
+
+/* .modal-login i {
+    position: absolute;
+    left: 13px;
+    top: 11px;
+    font-size: 18px;
+} for icons to add*/ 
+
+.modal-login .close {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+}
+
+.modal-login .modal-btn {
+    background-color: #3a5683;
+    border: 1px solid #3a5683;
+    margin:0 auto;
+    display: block;
+}
+.modal-login .modal-btn:hover, .modal-login .modal-btn:focus {
+    background-color: #00C6D7;
+    border: 1px solid #00C6D7;
+}
+.modal-login .modal-footer {
+    background: #ecf0f1;
+    border-color: #dee4e7;
+    color: black;
+    text-align: center;
+    margin: 0 -20px -20px;
+    border-radius: 5px;
+    font-size: 13px;
+    justify-content: center;
+}
+/* SIGN UP end*/
+
+/* NAVBAR STYLES END */
+
+/* HOME PAGE STARTS: */
+.jumbotron {
+    background-color: white;
+    margin-bottom: 0px;
+}
+
+.container {
+    /*text-align: center;*/
+    color: white;
+    position: relative;
+}
+
+.container img {
+    opacity: 0.8;
+}
+
+.container div {
+    /*margin-top: 10px;*/
+    text-align: center;
+    position: absolute;
+    bottom: -25px;
+    font-size: 36px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+}
+
+@media (max-width: 480px) {
+    .container div {
+        font-size: 24px;
+        bottom: -20px;
+    }
+}
+
+#favorited-heading, #profile-heading {
+    margin-bottom: 20px;
+}
+
+.heading {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#new-btn-container {
+    position: relative;
+}
+
+#new-org-btn {
+    position: absolute;
+    right: 0px;
+    background-color: #3a5683;
+    border: 1px solid #3a5683;
+}
+/* HOME PAGE ENDS */
+
+#main-content {
+    margin-top: 25px;
+}
+
+/* Search Style STARTS*/
+@media (max-width: 480px) {
+    .search-btn {
+        margin-top: 3px;
+        margin-left: 0;
+    }
+}
+
+.search-btn {
+    background-color: #3a5683;
+    border: 1px solid #3a5683;
+    color: white;
+    display: inline;
+}
+
+.search-btn:hover, .search-btn:focus {
+    background-color: #00C6D7;
+    border: 1px solid #00C6D7;
+}
+
+/* Search Style ENDS*/
+
+
+/* User Profile/Settings Styles START*/
+.userFav {
+    list-style-type: none;
+    margin-right: 5px;
+    margin-left: 5px;
+    border: 2px solid #FFCD00;
+    border-radius: 8px;
+    color: black;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.userFav a {
+    color: black;
+}
+.userFav a:hover {
+    color: #3a5683;
+}
+
+/* .userFav:hover {
+    background-color: #00C6D7;
+}*/
+
+.emailPad {
+    margin-top: 20px;
+}
+
+.fave-btn {
+    background-color: #3a5683;
+    border: 1px solid #3a5683;
+    float: right;
+    margin-right: 20px;
+    margin-top: -20px;
+}
+
+.userFavOrg {
+    list-style-type: none;
+    margin-right: 5px;
+    margin-left: 5px;
+    border: 2px solid #FFCD00;
+    color: black;
+    padding-top: 15px;
+    padding-bottom: 5px;
+}
+
+.fave-btn-org {
+    background-color: #3a5683;
+    border: 1px solid #3a5683;
+    float: right;
+    margin-right: 20px;
+    margin-top: -40px;
+}
+
+.change-btn {
+    text-align: center;
+    display: inline;
+    background-color: #3a5683;
+    border: 1px solid #3a5683;
+}
+
+@media all and (max-width:600px){
+    .change-btn {
+        width: 100%;
+        margin:0.4em auto;
+    }
+}
+
+.form-control {
+    margin-left: 10px;
+}
+
+.change-btn:hover, .fave-btn:hover, .fave-btn-org:hover, .change-btn:focus, .fave-btn:focus, .fave-btn-org:focus {
+    background-color: #00C6D7;
+    border: 1px solid #00C6D7;
+}
+
+#button2
+{
+    background-color: white;
+    border:black;
+    color: white;
+    text-align: center;
+    font-size: 16px;
+    margin: 4px 2px;
+    opacity: 0.6;
+    transition: 0.3s;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 12px;
+}
+
+/*User Profile/Settings Styles END*/
+
+/* event.js and org.js starts */
+
+#organization > ul {
+    list-style-type: none;
+    display: inline;
+}
+
+.row h2 {
+    margin-bottom: 0px;
+}
+
+.img-fluid {
+    max-width: 100%;
+    /*max-height: 350px;*/
+    height: auto;
+}
+
+#org-description {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#event-description {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#events-title {
+    margin-top: 30px;
+    margin-bottom: 20px;
+    text-align: left;
+    position: relative;
+}
+
+.event-preview, .org-preview {
+    border: 2px solid #FFCD00;
+    margin-right: 5px;
+    margin-left: 5px;
+    margin-bottom: 10px;
+    padding-top: 5px;
+    border-radius: 8px;
+}
+
+.userFav-preview {
+    list-style-type: none;
+    /*margin-right: 5px;
+    margin-left: 5px;
+    border: 2px solid #FFCD00;
+    border-radius: 8px*/
+    color: black;
+    /*padding-top: 10px;
+    margin-top: 10px;*/
+    margin-left: -20px;
+}
+
+.userFav-preview a {
+    color: black;
+}
+.userFav-preview a:hover {
+    color: #3a5683;
+    text-decoration: none;
+}
+
+.announcement-list {
+    list-style-type: none;
+    margin-left: -10px;
+}
+
+ol.announcement-list li {
+    margin-bottom: 10px;
+}
+
+.org-buttons {
+    float: right;
+    margin-right: 10px;
+    margin-top: 20px;
+}
+
+.org-buttons, #top-btn, #btn-add-event, .announcement-button {
+    background-color: #3a5683;
+    border: 1px solid #3a5683;
+}
+
+.org-buttons:hover, #btn-add-event:hover, #top-btn:hover, .announcement-button:hover, #new-org-btn:hover {
+    background-color: #00C6D7;
+    border: 1px solid #00C6D7;
+}
+
+.btn a {
+    color: white;
+}
+
+.btn a:hover {
+    text-decoration: none;
+}
+
+#event-name, #event-location, #start-time, #end-time, #org-name, #org-email {
+    width: 50%;
+}
+
+#event-description, #announcement-text, #org-description {
+    width: 75%;
+}
+
+.announcement-button {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#btn-add-event {
+    /*float: right;*/
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+}
+
+.info {
+    font-weight: bold;
+    padding-left: 5px;
+    overflow: hidden;
+}
+
+td.info a{
+    text-decoration: none;
+}
+
+/* event.js and org.js ends */
+

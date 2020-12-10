@@ -2,6 +2,7 @@ import { Component } from "react";
 import { Link } from "react-router-dom";
 import libuser from "../lib/user";
 import eventhub from "../lib/eventhub";
+import lib from "../lib/user";
 
 
 
@@ -38,6 +39,50 @@ class LoginModal extends Component {
 
     login() {
         return (
+            <div id="myModal" className="modal fade">
+                <div className="modal-dialog modal-login">
+                    <div className="modal-content">
+                        <div className="modal-header">				
+                            <h4 className="modal-title">Log In Below!</h4>
+                            <button type="button" className="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        </div>
+                
+                        <div className="modal-body">
+                            <form onSubmit={this.loginSubmit}>
+                                <div className="form-group">
+                                    <label htmlFor="login-email">Email:</label>
+                                    <input
+                                        name="login-email" 
+                                        type="email" 
+                                        className="form-control"
+                                        value={this.state.value} 
+                                        placeholder="example@ucsd.edu" 
+                                        required="required"
+                                        onChange={(evt) => {
+                                            this.setState({
+                                                value: evt.target.value,
+                                            });
+                                        }}/>
+                                </div>
+                                <div className="form-group">
+                                    <button type="submit" className="btn btn-primary modal-btn">
+                                        Log In
+                                    </button>
+                                </div>
+                            </form>				
+                        </div>
+                
+                        <div className="modal-footer">
+                            <p>Creating an account and logging in only requires an email. 
+                                We'll send you a one time password and you'll stay logged 
+                                in on this device.
+                            </p>
+                        </div>
+                
+                    </div>
+                </div>
+            </div>
+            /*
             <div id="login-modal">
                 <h1>Log In</h1>
                 <form onSubmit={this.loginSubmit}>
@@ -57,7 +102,7 @@ class LoginModal extends Component {
                     Creating an account and logging in only requires an email. We'll send
                     you a one time password and you'll stay logged in on this device.
                 </p>
-            </div>
+            </div>*/
         );
     }
 
@@ -80,6 +125,41 @@ class LoginModal extends Component {
 
     pin(wrong) {
         return (
+            <div id="myModal" className="modal fade">
+                <div className="modal-dialog modal-login">
+                    <div className="modal-content">
+                        <div className="modal-header">				
+                            <h4 className="modal-title">Log In Below!</h4>
+                            <button type="button" className="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        </div>
+            
+                        <div className="modal-body">
+                            <form onSubmit={this.pinSubmit}>
+                                <div className="form-group">
+                                    <label htmlFor="login-otp">One Time Password:</label>
+                                    <input
+                                        name="login-otp" 
+                                        type="text" 
+                                        className="form-control"
+                                        value={this.state.value} 
+                                        required="required"
+                                        onChange={(evt) => {
+                                            this.setState({
+                                                value: evt.target.value,
+                                            });
+                                        }}/>
+                                </div>
+                                <div className="form-group">
+                                    <button type="submit" className="btn btn-primary modal-btn">
+                                        Submit
+                                    </button>
+                                </div>
+                            </form>				
+                        </div>
+                    </div>
+                </div>
+            </div>
+            /*
             <div id="login-modal">
                 <h1>Log In</h1>
                 <form onSubmit={this.pinSubmit}>
@@ -95,7 +175,7 @@ class LoginModal extends Component {
                         }}/>
                     <input type="submit" />
                 </form>
-            </div>
+            </div>*/
         );
     }
 
@@ -116,11 +196,11 @@ export default class Header extends Component {
     constructor(props) {
         super(props)
 
-        this.state = {
-            showLogin : false,
-        };
+        //this.state = {
+        //    showLogin : false,
+        //};
 
-        this.loginToggle = this.loginToggle.bind(this);
+        //this.loginToggle = this.loginToggle.bind(this);
         this.logout = this.logout.bind(this);
         this.loggedIn = this.loggedIn.bind(this);
     }
@@ -130,40 +210,91 @@ export default class Header extends Component {
         const user = await libuser.get();
         this.setState({
             user,
-            ...this.state,
+            //...this.state,
         });
     }
 
     async loggedIn() {
         const user = await libuser.get();
         this.setState({
-            user,
-            showLogin: false,
+            user
+            //showLogin: false,
         });
     }
 
-    loginToggle() {
+    /*loginToggle() {
         this.setState({
             showLogin: this.state.showLogin != true,
         });
 
         console.log(this.state.showLogin);
-    }
+    }*/
 
     logout() {
         console.log("logging out");
 
         libuser.del();
         this.setState({
-            user: null,
-            showLogin: this.state.showLogin,
+            user: null
+            //showLogin: this.state.showLogin,
         });
     }
 
     render() {
+        if (!this.state) {
+            return <div/>;
+        }
         const user = this.state.user;
+        console.log("header state: ", this.state.user);
         return (
             <header>
+                <nav id="navbar" className="navbar navbar-expand-md navbar-light extendFull">
+                    <div className="container-fluid">
+                        <div className="navbar-header">
+                            <Link to="/" className="navbar-brand">
+                                <img id="logo-img" src="https://cdn.discordapp.com/attachments/771973772881690644/780461009663164459/logo.png" width="70px" height="70px"/>
+                                EventHub
+                            </Link>
+                        </div>
+
+                        <button id="nav-button" className="navbar-toggler" type="button" data-toggle="collapse" 
+                                data-target="#navbarToggler" aria-controls="navbarToggler" 
+                                aria-expanded="false" aria-label="Toggle navigation">
+                                <span className="navbar-toggler-icon"></span>
+                        </button>
+
+                        <div className="collapse navbar-collapse" id="navbarToggler">
+                            <ul className="navbar-nav ml-auto">
+                                <li className="nav-item">
+                                    <Link to="/calendar" className="nav-link">Calendar</Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link to="/search" className="nav-link">Search</Link>
+                                </li>
+                                {user && (
+                                    <li className="nav-item">
+                                        <Link to="/settings" className="nav-link">Settings</Link>
+                                    </li>
+                                )}
+                                {user && user.email && (
+                                    <li className="nav-item">
+                                        <Link className="nav-link" onClick={this.logout}>Log Out</Link>
+                                    </li>
+                                )}
+                                {(!user || !user.email) && (
+                                    <li className="nav-item">
+                                        <a className="nav-link" href="#myModal" data-toggle="modal">
+                                            Log In
+                                        </a>
+                                    </li>
+                                )}
+                            </ul>
+                        </div> 
+                    </div>
+                </nav>
+                <LoginModal onSuccess={this.loggedIn} />
+                
+                {/*}
                 <nav className="content" role="navigation">
                     <Link id="nav-title" to="/">
                         <img id="nav-logo" />
@@ -196,7 +327,7 @@ export default class Header extends Component {
                 </nav>
                 { this.state.showLogin && (
                     <LoginModal onSuccess={this.loggedIn} />
-                )}
+                )} */}
             </header>
         );
     }
