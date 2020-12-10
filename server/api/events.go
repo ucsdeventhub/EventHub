@@ -18,7 +18,7 @@ func (srv *Provider) GetEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validParams := []string{"orgs", "tags", "before", "after", "limit", "offset"}
+	validParams := []string{"orgs", "tags", "before", "after", "limit", "offset", "name"}
 L:
 	for k := range query {
 		for _, v := range validParams {
