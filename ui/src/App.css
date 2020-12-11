@@ -1,8 +1,6 @@
 #nav-logo {
     height: 50px;
     width: 50px;
-    background-color: black;
-    border: solid black 2px;
 }
 
 
@@ -67,8 +65,8 @@ nav li > *:focus-within * {
     color: #ffcd00;
 }
 
-@media (max-width: 600px) {
-    #nav-title > h1 {
+@media (min-width: 600px) {
+    #nav-hamburger {
         display: none;
     }
 }
@@ -77,6 +75,17 @@ nav li > *:focus-within * {
     nav {
         font-size: 18px;
     }
+}
+
+#modal-background {
+    background-color: black;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    opacity: 0.4;
+    z-index: 10;
 }
 
 #login-modal {
@@ -89,7 +98,9 @@ nav li > *:focus-within * {
     margin: auto;
     background-color: white;
     padding: 10px;
-    border: solid black 5px;
+    border: solid black 0.5px;
+    border-radius: 3px;
+    z-index: 11;
 }
 
 .org-logo {

@@ -2,6 +2,7 @@ import { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import libuser from "../lib/user";
 import eventhub from "../lib/eventhub";
+import logo from "../logo.svg";
 
 
 
@@ -100,15 +101,23 @@ class LoginModal extends Component {
     }
 
     render() {
+        let modal;
         switch (this.state.step) {
             case 0:
-                return this.login();
+                modal =  this.login();
+                break;
             case 1:
-                return this.pin(false);
+                modal =  this.pin(false);
+                break;
             default:
                 console.log("invalid state!!", this.state);
                 return <div/>
         }
+
+        return (<>
+            {modal}
+            <div id="modal-background" onClick={ this.props.onCancel }/>
+        </>);
     }
 }
 
@@ -168,7 +177,7 @@ export default withRouter(class Header extends Component {
             <header>
                 <nav className="content" role="navigation">
                     <Link id="nav-title" to="/">
-                        <img id="nav-logo" />
+                        <img src={ logo } id="nav-logo" />
                         <h1>EventHub</h1>
                     </Link>
 
@@ -197,7 +206,9 @@ export default withRouter(class Header extends Component {
                     </ul>
                 </nav>
                 { this.state.showLogin && (
-                    <LoginModal onSuccess={this.loggedIn} />
+                    <LoginModal
+                        onSuccess={this.loggedIn}
+                        onCancel={this.loginToggle} />
                 )}
             </header>
         );
