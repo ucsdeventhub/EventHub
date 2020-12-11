@@ -1,6 +1,7 @@
 import { Fragment, Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import eventhub from "../lib/eventhub";
+import libuser from "../lib/user";
 
 export default withRouter(class Event extends Component {
     constructor(props) {
@@ -24,6 +25,7 @@ export default withRouter(class Event extends Component {
         }
 
         this.handleEditSubmit = this.handleEditSubmit.bind(this);
+        this.toggleFavorite = this.toggleFavorite.bind(this);
 
         console.log("in cons: ", props);
     }
@@ -35,6 +37,14 @@ export default withRouter(class Event extends Component {
             this.setState({ event });
         }
 
+        const favorites = await libuser.eventFavorites();
+        if (favorites.includes(this.state.event.id)) {
+            this.setState({
+                favorited: true,
+                ...this.state,
+            });
+        }
+
         if (!this.state.org) {
             const org = await eventhub.getOrg(this.state.event.orgID);
 
@@ -43,7 +53,7 @@ export default withRouter(class Event extends Component {
                 ...this.state,
             });
 
-            const sorgs = await eventhub.getOrgsSelf();
+            const sorgs = await libuser.orgAdmins();
             if (sorgs.filter((org1) => org1.id == org.id).length) {
                 this.setState({
                     editable: true,
@@ -273,6 +283,36 @@ export default withRouter(class Event extends Component {
         );
     }
 
+    imgSrc() {
+        return `/api/events/${this.state.event.id}/logo`
+    }
+
+    async toggleFavorite() {
+        if (this.state.favorited) {
+            console.log("removing favorite", await libuser.get());
+            await libuser.removeEventFavorite(this.state.event.id);
+            console.log("removed favorite", await libuser.get());
+        } else {
+            await libuser.addEventFavorite(this.state.event.id);
+        }
+
+        libuser.eventFavorites().then(favorites => {
+            if (favorites.includes(this.state.event.id)) {
+                this.setState({
+                    favorited: true,
+                    ...this.state,
+                });
+            } else {
+                console.log("removing state favorite");
+                this.setState({
+                    ...this.state,
+                    favorited: false,
+                });
+                console.log("removed state favorite", this.state);
+            }
+        });
+    }
+
     render() {
         if (!this.state || !this.state.event || !this.state.org) {
             return <div/>;
@@ -298,37 +338,51 @@ export default withRouter(class Event extends Component {
             ));
         }
 
+        let favoriteButton;
+        if (this.state.favorited) {
+            favoriteButton = (<button onClick={this.toggleFavorite}>Unfavorite 🔱</button>)
+        } else {
+            favoriteButton = (<button onClick={this.toggleFavorite}>Favorite 🔱</button>)
+        }
+
+
         return (
-            <div>
-                {this.state.editable && (
-                    <a className="editLink" href={`/events/${this.state.event.id}/edit`}>edit</a>
-                )}
-                <h1>
-                    {this.state.event.name}
-                </h1>
-                <h2>Details</h2>
-                <table>
-                    <tbody>
-                        <tr>
-                            <td className="event-detail-field">By: </td>
-                            <td>
-                                <Link to={`/orgs/${this.state.event.orgID}`}>{this.state.org.name}</Link>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="event-detail-field">On: </td>
-                            <td>{this.state.event.startTime}</td>
-                        </tr>
-                        <tr>
-                            <td className="event-detail-field">Until: </td>
-                            <td>{this.state.event.endTime}</td>
-                        </tr>
-                        <tr>
-                            <td className="event-detail-field">At: </td>
-                            <td>{this.state.event.location}</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div id="event-full">
+                <img src={this.imgSrc()} className="event-logo" />
+                <div id="event-meta">
+                    <h1>
+                        {this.state.event.name}
+                    </h1>
+                    <h2>Details</h2>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td className="event-detail-field">By: </td>
+                                <td>
+                                    <Link to={`/orgs/${this.state.event.orgID}`}>{this.state.org.name}</Link>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="event-detail-field">On: </td>
+                                <td>{this.state.event.startTime}</td>
+                            </tr>
+                            <tr>
+                                <td className="event-detail-field">Until: </td>
+                                <td>{this.state.event.endTime}</td>
+                            </tr>
+                            <tr>
+                                <td className="event-detail-field">At: </td>
+                                <td>{this.state.event.location}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="event-actions">
+                    {favoriteButton}
+                    {this.state.editable && (
+                        <a className="button" href={`/events/${this.state.event.id}/edit`}>Edit</a>
+                    )}
+                </div>
 
                 <h2>Description</h2>
                 <p>{this.state.event.description}</p>

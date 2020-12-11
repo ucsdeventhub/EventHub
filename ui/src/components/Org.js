@@ -3,6 +3,7 @@ import { withRouter } from "react-router-dom";
 
 import Event from "./Event";
 import eventhub from "../lib/eventhub";
+import libuser from "../lib/user";
 
 class OrgEventList extends Component {
     constructor(props) {
@@ -43,7 +44,7 @@ class OrgEventList extends Component {
         const events = this.state.events.map((evt, i) => {
             console.log("event model", evt);
             return (
-                <li key={i}>
+                <li key={i} className="event-preview-wide no-scroll-item">
                     <Event preview="wide" model={evt}/>
                 </li>
             )
@@ -52,7 +53,7 @@ class OrgEventList extends Component {
         console.log(events);
 
         return (
-            <ol>
+            <ol className="no-scroll-list">
                 {events}
             </ol>
         );
@@ -64,6 +65,7 @@ export default withRouter(class Org extends Component {
         super(props);
 
         this.handleEditSubmit = this.handleEditSubmit.bind(this);
+        this.toggleFavorite = this.toggleFavorite.bind(this);
     }
 
     async componentDidMount() {
@@ -71,7 +73,16 @@ export default withRouter(class Org extends Component {
         const org = await eventhub.getOrg(this.props.orgID);
         this.setState(org);
 
-        const sorgs = await eventhub.getOrgsSelf();
+        const favorites = await libuser.orgFavorites();
+        if (favorites.includes(this.state.id)) {
+            this.setState({
+                favorited: true,
+                ...this.state,
+            });
+        }
+
+
+        const sorgs = await libuser.orgAdmins();
         if (sorgs.filter((org1) => org1.id == org.id).length) {
             this.setState({
                 editable: true,
@@ -123,6 +134,32 @@ export default withRouter(class Org extends Component {
         )
     }
 
+    async toggleFavorite() {
+        if (this.state.favorited) {
+            console.log("removing favorite", await libuser.get());
+            await libuser.removeOrgFavorite(this.state.id);
+            console.log("removed favorite", await libuser.get());
+        } else {
+            await libuser.addOrgFavorite(this.state.id);
+        }
+
+        libuser.orgFavorites().then(favorites => {
+            if (favorites.includes(this.state.id)) {
+                this.setState({
+                    favorited: true,
+                    ...this.state,
+                });
+            } else {
+                console.log("removing state favorite");
+                this.setState({
+                    ...this.state,
+                    favorited: false,
+                });
+                console.log("removed state favorite", this.state);
+            }
+        });
+    }
+
     imgSrc() {
         return `/api/orgs/${this.state.id}/logo`
     }
@@ -140,19 +177,29 @@ export default withRouter(class Org extends Component {
             return
         }
 
+        let favoriteButton;
+        if (this.state.favorited) {
+            favoriteButton = (<button onClick={this.toggleFavorite}>Unfavorite 🔱</button>)
+        } else {
+            favoriteButton = (<button onClick={this.toggleFavorite}>Favorite 🔱</button>)
+        }
+
         return (
             <div>
-                {this.state.editable && (
-                    <a className="edit-link" href={`/orgs/${this.state.id}/edit`}>edit</a>
-                )}
-                {this.state.editable && (
-                    <a className="edit-link" href={`/orgs/${this.state.id}/new-event`}>new event</a>
-                )}
-                <br/>
-
                 <img src={this.imgSrc()} className="org-logo" />
-                <h1>{this.state.name}</h1>
-                <p>{this.state.description}</p>
+                <div id="org-meta">
+                    <h1>{this.state.name}</h1>
+                    <p>{this.state.description}</p>
+                </div>
+                <div id="org-actions">
+                    {favoriteButton}
+                    {this.state.editable && (
+                        <a className="button" href={`/orgs/${this.state.id}/edit`}>Edit</a>
+                    )}
+                    {this.state.editable && (
+                        <a className="button" href={`/orgs/${this.state.id}/new-event`}>New Event</a>
+                    )}
+                </div>
                 <OrgEventList model={this.state} />
             </div>
         );

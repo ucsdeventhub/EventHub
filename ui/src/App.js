@@ -17,8 +17,8 @@ import Calendar from "./components/Calendar"
 function App() {
   return (
     <Router>
-        <Header/>
-          <div className="content">
+        <Header />
+          <main className="content">
               <Switch>
                 <Route exact={true} path="/" render={() => (
                     <Home />
@@ -59,7 +59,7 @@ function App() {
 
                 <Route path="/" render={() => (<h1>Not found!</h1>)} />
             </Switch>
-        </div>
+        </main>
     </Router>
   );
 }

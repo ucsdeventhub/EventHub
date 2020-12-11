@@ -138,14 +138,17 @@ export default class Home extends Component {
         const user = this.state.user;
         return (
             <>
-                { user && user.eventFavorites.length && (
+                { user && user.eventFavorites.length > 0 && (
                     <>
                         <h2>Favorited Events</h2>
                         <EventSideScroll eventIDs={user.eventFavorites} />
                     </>
                 )}
+            </>
+        );
 
-                { user && ((user.tagFavorites &&user.tagFavorites.length)
+        /*
+                { user && ((user.tagFavorites && user.tagFavorites.length > 0)
                     || (user.orgFavorites && user.orgFavorites.length)) && (
                     <>
                         <h2>Favorited Events</h2>
@@ -154,8 +157,7 @@ export default class Home extends Component {
                             orgIDs={user.orgFavorites} />
                     </>
                 )}
-            </>
-        );
+                */
     }
 
 

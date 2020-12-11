@@ -1,5 +1,4 @@
 import { Fragment, Component } from "react";
-import { Link, withRouter } from "react-router-dom";
 import Event from "./Event";
 import eventhub from "../lib/eventhub";
 import queryparser from "../lib/queryparser";
@@ -19,7 +18,7 @@ export default class Search extends Component {
         evt.preventDefault();
         const obj = queryparser.parse(this.state.query);
         let q = obj.filters.reduce((acc, el) => {
-            if (el.key == "after" && el.value == "today") {
+            if (el.key === "after" && el.value === "today") {
                 el.value = (new Date()).toISOString().slice(0, 10);
             }
             return `${acc}${el.key}=${el.value}&`
@@ -28,17 +27,18 @@ export default class Search extends Component {
         q += `name=${obj.query}`
 
 
+
         const results = await eventhub.getEventsRaw(q);
-        this.setState({results, ...this.state});
+        console.log(results);
+        this.setState({...this.state, results});
     }
 
     render() {
         let results = null;
         if (this.state.results) {
-            console.log(this.state.results);
             results = this.state.results.map((event, i) => {
                 return (
-                    <li key={i} className="evenet-preview-wide no-scroll-item">
+                    <li key={i} className="event-preview-wide no-scroll-item">
                         <Event preview model={{event}} />
                     </li>
                 );
@@ -60,13 +60,14 @@ export default class Search extends Component {
                             });
                         }} />
                     <datalist id="event-search-list">
-                        <option value="tags:games" />
+                        <option value="tags:gaming" />
+                        <option value="tags:greek" />
                         <option value="before:2020-12-30" />
                         <option value="after:today" />
                     </datalist>
                     <input type="submit" />
                 </form>
-                <ul>
+                <ul className="no-scroll-list">
                     {results}
                 </ul>
             </>
