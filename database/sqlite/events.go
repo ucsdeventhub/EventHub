@@ -103,8 +103,8 @@ func (q querierFacade) GetEvents(filter database.EventFilter) ([]models.Event, e
 		}
 
 		for _, v := range names {
-			v = strings.Replace(v, "%", "", -1)
-			addWhere("e.name LIKE ?", "%" + v + "%")
+			v = strings.Replace(v, "%", "", -1) // prevent user from adding own wildcards
+			addWhere("LOWER(e.name) LIKE ?", "%" + strings.ToLower(v) + "%")
 		}
 	}
 
@@ -213,7 +213,7 @@ func (q querierFacade) GetTrendingEvents() ([]models.Event, error) {
 	`
 
 	rows, err := q.Query(query,
-		time.Now().Add(-7*24*time.Hour), // created in the last week
+		time.Now().Add(-14*24*time.Hour), // created in the last week
 		time.Now())                      // and has not started
 	if err != nil {
 		return nil, err

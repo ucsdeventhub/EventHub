@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"image"
+	"image/png"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/ucsdeventhub/EventHub/database"
 	"github.com/ucsdeventhub/EventHub/models"
+	"github.com/ucsdeventhub/EventHub/utils"
 )
 
 func (srv *Provider) GetEvents(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +49,6 @@ L:
 	if nameStr != "" {
 		filter.Name = &nameStr
 	}
-
 
 	orgsStr := query.Get("orgs")
 	if orgsStr != "" {
@@ -272,7 +274,7 @@ func (srv *Provider) PutEvents(w http.ResponseWriter, r *http.Request) {
 	event, err := srv.DB.NonTx(r.Context()).GetEventByID(eventID)
 	if err != nil {
 		if errors.Is(err, database.ErrNoRows) {
-			Error(w, err, "event does not exist",http.StatusNotFound)
+			Error(w, err, "event does not exist", http.StatusNotFound)
 			return
 		}
 		Error(w, err, "error getting event from database", http.StatusInternalServerError)
@@ -356,4 +358,13 @@ func (srv *Provider) DeleteEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	NoContent(w)
+}
+
+func (srv *Provider) GetEventsLogo(w http.ResponseWriter, r *http.Request) {
+	eventID := EventIDToken.GetString(r)
+
+	img := utils.StringHashImage("event:"+eventID, image.Rect(0, 0, 200, 200))
+
+	w.Header().Set("Content-Type", "image/png")
+	png.Encode(w, img)
 }

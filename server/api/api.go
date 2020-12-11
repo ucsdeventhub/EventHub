@@ -83,10 +83,13 @@ func New(router chi.Router, srv *Provider) {
 
 	// unauthenticated routes
 	router.Post(BuildRoute("login"), srv.Login)
+
 	router.Get(BuildRoute("events"), srv.GetEvents)
 	router.Get(BuildRoute("events", "trending"), srv.GetEventsTrending)
 	router.Get(BuildRoute("events", EventIDToken), srv.GetEventsID)
 	router.Get(BuildRoute("events", EventIDToken, "announcements"), srv.GetEventsAnnouncements)
+	router.Get(BuildRoute("events", EventIDToken, "logo"), srv.GetEventsLogo)
+
 	router.Get(BuildRoute("orgs"), srv.GetOrgs)
 	router.Get(BuildRoute("orgs", OrgIDToken), srv.GetOrgsID)
 	router.Get(BuildRoute("orgs", OrgIDToken, "logo"), srv.GetOrgsLogo)

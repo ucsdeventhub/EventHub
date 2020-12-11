@@ -198,6 +198,38 @@ class Client {
 		return await this.request(GET, route, true);
 	}
 
+    /* not currently implemented
+	async putUsersSelf(user) {
+		const route = "/users/self";
+
+		return await this.request(PUT, route, true, user);
+	}
+    */
+
+    async putUsersEvents(eventID) {
+        const route = `/users/self/events/${eventID}`
+
+		return await this.request(PUT, route, true);
+    }
+
+    async deleteUsersEvents(eventID) {
+        const route = `/users/self/events/${eventID}`
+
+		return await this.request(DELETE, route, true);
+    }
+
+    async putUsersOrgs(orgID) {
+        const route = `/users/self/orgs/${orgID}`
+
+		return await this.request(PUT, route, true);
+    }
+
+    async deleteUsersOrgs(orgID) {
+        const route = `/users/self/orgs/${orgID}`
+
+		return await this.request(DELETE, route, true);
+    }
+
     async postOrgEvent(event) {
         const route = `/org/${event.orgID}/events`
 
