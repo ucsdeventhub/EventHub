@@ -33,6 +33,7 @@ type Provider interface {
 	GetEventByID(eventID int) (*models.Event, error)
 	GetTrendingEvents() ([]models.Event, error)
 	UpsertEvent(event *models.Event) (eventID int, err error)
+	UpsertEventWithoutID(event *models.Event) (eventID int, err error)
 	DeleteEvent(eventID int) error
 
 	GetAnnouncementsByEventID(eventID int) ([]models.Announcement, error)
@@ -41,6 +42,7 @@ type Provider interface {
 	// Org queries
 	GetOrgs(filter OrgFilter) ([]models.Org, error)
 	GetOrgByID(orgID int) (*models.Org, error)
+	GetOrgByName(orgName string) (*models.Org, error)
 	GetOrgsForEmail(email string) ([]models.Org, error)
 	UpsertOrg(org *models.Org) (orgID int, error error)
 

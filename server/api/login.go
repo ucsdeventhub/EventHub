@@ -103,7 +103,7 @@ func (srv *Provider) Login(w http.ResponseWriter, r *http.Request) {
 				return nil
 			}
 
-			if !srv.IsProduction && qemail == "test@ucsd.edu" {
+			if !srv.IsProduction && (qemail == "test-org@ucsd.edu" || qemail == "test-user@ucsd.edu") {
 				NoContent(w)
 				return nil
 			}
@@ -149,7 +149,7 @@ Here's your verification code:
 
 			// dev backdoor
 			log.Println("code: ", qcode)
-			if srv.IsProduction || qemail != "test-org@ucsd.edu" {
+			if srv.IsProduction || !(qemail == "test-org@ucsd.edu" || qemail == "test-user@ucsd.edu") {
 				if code != qcode {
 					Error(w, err, "incorrect code", http.StatusBadRequest)
 					return nil
@@ -161,7 +161,7 @@ Here's your verification code:
 					return nil
 				}
 			} else {
-				// !prod and qemail is test-org@ucsd.edu
+				// !prod and qemail is test account
 				if qcode != "1010" {
 					Error(w, err, "incorrect code", http.StatusBadRequest)
 					return nil

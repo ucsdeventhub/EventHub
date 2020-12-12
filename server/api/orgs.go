@@ -132,7 +132,9 @@ func (srv *Provider) GetOrgsSelf(w http.ResponseWriter, r *http.Request) {
 	// access control check
 	tokenOrgs, ok := r.Context().Value(ctxKeyOrg).([]models.Org)
 	if !ok {
-		Error(w, nil, "error getting token value", http.StatusBadRequest)
+
+		OkJSON(w, []int{})
+		//Error(w, nil, "error getting token value", http.StatusBadRequest)
 		return
 	}
 

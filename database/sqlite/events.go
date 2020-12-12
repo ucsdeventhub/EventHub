@@ -333,7 +333,42 @@ func (q querierFacade) UpsertEvent(event *models.Event) (eventID int, err error)
 
 	_, err = q.Exec(query, varr...)
 	return eventID, err
+}
 
+func (q querierFacade) UpsertEventWithoutID(event *models.Event) (eventID int, err error) {
+
+	query := `SELECT
+		id
+	FROM
+		events
+	WHERE
+		org_id = ?
+	AND
+		name = ?
+	AND
+		start_time = ?;
+	`
+
+
+	rows, err := q.Query(query,
+		event.OrgID,
+		event.Name,
+		event.StartTime,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	if rows.Next() {
+		rows.Scan(&eventID)
+		if err != nil {
+			return 0, err
+		}
+		event.ID = &eventID
+	}
+	rows.Close()
+
+	return q.UpsertEvent(event)
 }
 
 func (q querierFacade) DeleteEvent(eventID int) error {
