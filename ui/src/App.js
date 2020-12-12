@@ -13,6 +13,7 @@ import Header from "./components/Header";
 import Home from "./components/Home";
 import Search from "./components/Search";
 import Calendar from "./components/Calendar"
+import Settings from "./components/Settings"
 
 function App() {
   return (
@@ -55,6 +56,10 @@ function App() {
 
                 <Route path="/calendar" render={() => (
                     <Calendar />
+                )} />
+
+                <Route path="/settings" render={() => (
+                    <Settings />
                 )} />
 
                 <Route path="/" render={() => (<h1>Not found!</h1>)} />
