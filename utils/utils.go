@@ -36,11 +36,10 @@ func StringHashImage(s string, r image.Rectangle) image.Image {
 
 	colors := make([]color.RGBA, 4)
 	for i := range colors {
-		colors[i] = color.RGBA{hash[i], hash[i+1], hash[i+2], 255}
+		colors[i] = color.RGBA{hash[3*i], hash[3*i+1], hash[3*i+2], 255}
 	}
 
-	for i := 0; i < 4; i++ {
-		c := color.RGBA{hash[i], hash[i+1], hash[i+2], 255}
+	for i, c := range colors {
 
 		var dx, dy int
 		switch i {
