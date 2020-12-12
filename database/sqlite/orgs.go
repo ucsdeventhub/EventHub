@@ -20,16 +20,21 @@ func orgsFromRows(rows *sql.Rows) ([]models.Org, error) {
 	var org models.Org
 	for rows.Next() {
 		var tag sql.NullString
+		var desc sql.NullString
 
 		err := rows.Scan(
 			&org.ID,
 			&org.Name,
 			&tag,
-			&org.Description,
+			&desc,
 			&org.TokenVersion)
 
 		if err != nil {
 			return nil, err
+		}
+
+		if desc.Valid {
+			org.Description = desc.String
 		}
 
 		idx, ok := id2idx[*org.ID]
@@ -136,6 +141,43 @@ func (q *querierFacade) GetOrgByID(orgID int) (*models.Org, error) {
 
 	if len(ret) > 1 {
 		log.Println("ID SHOULD BE THE PRIMARY KEY!!")
+	}
+
+	return &ret[0], nil
+}
+
+func (q *querierFacade) GetOrgByName(orgName string) (*models.Org, error) {
+	query := `SELECT
+		o.id,
+		o.name,
+		tags.tag_id,
+		o.description,
+		o.token_version
+	FROM orgs AS o
+	LEFT JOIN org_tags AS tags
+	ON tags.org_id = o.id
+	WHERE
+		o.name = ?
+	AND
+		o.deleted IS NULL;
+	`
+
+	rows, err := q.Query(query, orgName)
+	if err != nil {
+		return nil, err
+	}
+
+	ret, err := orgsFromRows(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ret) == 0 {
+		return nil, database.ErrNoRows
+	}
+
+	if len(ret) > 1 {
+		log.Println("NAME SHOULD BE THE UNIQUE!!")
 	}
 
 	return &ret[0], nil

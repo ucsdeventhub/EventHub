@@ -33,8 +33,15 @@ simple visual confimation that operations are executed correctly.
 There is a hard coded organiztion-associated user in the database and dev
 deployment. The verification code for this user is also hard coded.
 
+For org privileges:
 ```
 email: test-org@ucsd.edu
+code: 1010
+```
+
+For (normal) user privileges:
+```
+email: test-user@ucsd.edu
 code: 1010
 ```
 
