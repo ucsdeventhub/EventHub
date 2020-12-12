@@ -14,6 +14,7 @@ type Event struct {
 	OrgID       int       `json:"orgID"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
+	Location    string    `json:"location"`
 	StartTime   time.Time `json:"startTime"`
 	EndTime     time.Time `json:"endTime"`
 	Created     time.Time `json:"created"`

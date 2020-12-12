@@ -19,12 +19,14 @@ func eventsFromRows(rows *sql.Rows) ([]models.Event, error) {
 	var event models.Event
 	for rows.Next() {
 		var tag sql.NullString
+		var location sql.NullString
 
 		err := rows.Scan(
 			&event.ID,
 			&event.OrgID,
 			&event.Name,
 			&event.Description,
+			&location,
 			&event.StartTime,
 			&event.EndTime,
 			&event.Created,
@@ -34,6 +36,8 @@ func eventsFromRows(rows *sql.Rows) ([]models.Event, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		event.Location = location.String
 
 		idx, ok := id2idx[*event.ID]
 		if ok && tag.Valid {
@@ -119,6 +123,7 @@ func (q querierFacade) GetEvents(filter database.EventFilter) ([]models.Event, e
 		e.org_id,
 		e.name,
 		e.description,
+		e.location,
 		e.start_time,
 		e.end_time,
 		e.created,
@@ -181,6 +186,7 @@ func (q querierFacade) GetTrendingEvents() ([]models.Event, error) {
 		e.org_id,
 		e.name,
 		e.description,
+		e.location,
 		e.start_time,
 		e.end_time,
 		e.created,
@@ -234,6 +240,7 @@ func (q querierFacade) GetEventByID(eventID int) (*models.Event, error) {
 		e.org_id,
 		e.name,
 		e.description,
+		e.location,
 		e.start_time,
 		e.end_time,
 		e.created,
@@ -277,13 +284,15 @@ func (q querierFacade) UpsertEvent(event *models.Event) (eventID int, err error)
 		org_id,
 		name,
 		description,
+		location,
 		start_time,
 		end_time
 	) VALUES
-	(?, ?, ?, ?, ?, ?)
+	(?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT (id) DO UPDATE SET
 		name = excluded.name,
 		description = excluded.description,
+		location = excluded.location,
 		start_time = excluded.start_time,
 		end_time = excluded.end_time;
 	`
@@ -294,6 +303,7 @@ func (q querierFacade) UpsertEvent(event *models.Event) (eventID int, err error)
 		event.OrgID,
 		event.Name,
 		event.Description,
+		event.Location,
 		event.StartTime,
 		event.EndTime,
 	)
