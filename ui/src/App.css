@@ -206,3 +206,12 @@ main.content button:hover, .button:hover {
     padding: 5px;
 }
 
+.settings-item * {
+    display: inline;
+    font-size: 18px;
+}
+.settings-item  {
+    display: flex;
+    justify-content: space-between;
+    max-width: 500px;
+}
