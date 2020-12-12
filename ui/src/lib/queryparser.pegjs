@@ -17,7 +17,7 @@ WordSpace
 	= w:Word _ { return w }
 
 Word
-	= [a-zA-Z0-9,]+ { return text(); }
+	= [a-zA-Z0-9,\-]+ { return text(); }
 
 
 _ "whitespace"
