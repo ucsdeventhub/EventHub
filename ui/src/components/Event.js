@@ -114,8 +114,8 @@ export default withRouter(class Event extends Component {
     async handleEditSubmit(evt) {
 
         evt.preventDefault();
-        this.state.event.startTime = new Date(this.state.event.endTime);
-        this.state.event.endTime = new Date(this.state.event.startTime);
+        this.state.event.startTime = new Date(this.state.event.startTime);
+        this.state.event.endTime = new Date(this.state.event.endTime);
 
         let eventID;
         if (this.props.newForOrg) {
