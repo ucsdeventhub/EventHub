@@ -120,9 +120,10 @@ class User {
 
     async orgAdmins() {
         //const user = await this.get();
-        if (eventhub.getToken()) {
+        try {
             return await eventhub.getOrgsSelf();
-        } else {
+        } catch (err) {
+            console.log("orgAdmins ", err);
             return [];
         }
     }

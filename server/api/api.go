@@ -94,9 +94,6 @@ func New(router chi.Router, srv *Provider) {
 	router.Get(BuildRoute("orgs", OrgIDToken), srv.GetOrgsID)
 	router.Get(BuildRoute("orgs", OrgIDToken, "logo"), srv.GetOrgsLogo)
 
-	// kinda hacky
-	router.Get(BuildRoute("orgs", "self"), srv.GetOrgsSelf)
-
 	// user authenticated routes
 	router.Group(func(router chi.Router) {
 		router.Use(
@@ -121,6 +118,7 @@ func New(router chi.Router, srv *Provider) {
 			NewOrgJWTMiddleware(srv.DB, srv.Token),
 		)
 
+		router.Get(BuildRoute("orgs", "self"), srv.GetOrgsSelf)
 
 		router.Put(BuildRoute("orgs", OrgIDToken), srv.PutOrgs)
 
