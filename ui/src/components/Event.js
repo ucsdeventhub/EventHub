@@ -34,7 +34,13 @@ export default withRouter(class Event extends Component {
 
         if (!this.state) {
             const event = await eventhub.getEvent(this.props.eventID);
-            this.setState({ event });
+            this.setState({
+                event: {
+                    ...event,
+                    startTime: new Date(event.startTime),
+                    endTime: new Date(event.endTime),
+                },
+            });
         }
 
         const favorites = await libuser.eventFavorites();
@@ -108,7 +114,9 @@ export default withRouter(class Event extends Component {
     async handleEditSubmit(evt) {
 
         evt.preventDefault();
-        // TODO: send to api
+        this.state.event.startTime = new Date(this.state.event.endTime);
+        this.state.event.endTime = new Date(this.state.event.startTime);
+
         let eventID;
         if (this.props.newForOrg) {
             const res = await eventhub.postOrgEvent(this.state.event);
@@ -125,19 +133,21 @@ export default withRouter(class Event extends Component {
     }
 
     edit() {
-        console.log("creating ann", this.state.announcements);
         let announcements = null;
         if (this.state.announcements) {
             announcements = this.state.announcements.map((a, i) => (
                 <Fragment key={i}>
-                    <label className="edit-field" htmlFor={`announcement-${i}`}>{a.created}</label>
+                    <label
+                        className="edit-field"
+                        htmlFor={`announcement-${i}`}>{(new Date(a.created)).toString()}</label>
 
                     <textarea
                         form="event-edit-form"
                         name={`annoucement-${i}`}
                         value={a.announcement}
                         onChange={(evt) => {
-                            this.state.announcements[i].body = evt.target.value;
+                            this.state.announcements[i].announcement = evt.target.value;
+                            console.log("on change", evt.target.value);
 
                             this.setState({
                                 ...this.state,
@@ -259,7 +269,8 @@ export default withRouter(class Event extends Component {
                             });
 
                         }}>New Announcement</button>)}
-                    { !this.props.newForOrg && this.state.hasNewAnnouncement && (<button className="edit-field"
+                    { !this.props.newForOrg && this.state.hasNewAnnouncement && (<input
+                        className="button"
                         type="button"
                         onClick={() => {
                             let a = this.state.announcements;
@@ -270,13 +281,13 @@ export default withRouter(class Event extends Component {
                                 announcements: a,
                                 hasNewAnnouncement: false,
                             });
-                        }}>Cancel New Announcement</button>)}
+                        }}>Cancel New Announcement</input>)}
 
                     {/* one of these per announcement */}
 
                     {announcements}
 
-                    <input className="edit-field" type="submit"/>
+                    <input className="edit-field button" type="submit"/>
 
                 </form>
             </>
@@ -332,7 +343,7 @@ export default withRouter(class Event extends Component {
         if (this.state.announcements) {
             announcements = this.state.announcements.map((a, i) => (
                 <li key={i}>
-                    <h3>{a.created}</h3>
+                    <h3>{(new Date(a.created)).toString()}</h3>
                     <p>{a.announcement}</p>
                 </li>
             ));
@@ -364,11 +375,11 @@ export default withRouter(class Event extends Component {
                             </tr>
                             <tr>
                                 <td className="event-detail-field">On: </td>
-                                <td>{this.state.event.startTime}</td>
+                                <td>{this.state.event.startTime.toString()}</td>
                             </tr>
                             <tr>
                                 <td className="event-detail-field">Until: </td>
-                                <td>{this.state.event.endTime}</td>
+                                <td>{this.state.event.endTime.toString()}</td>
                             </tr>
                             <tr>
                                 <td className="event-detail-field">At: </td>

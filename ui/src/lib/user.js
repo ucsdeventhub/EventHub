@@ -42,6 +42,15 @@ class User {
 
     async addOrgFavorite(orgID) {
         const user = await this.get();
+        if (!user) {
+            await this.set({
+                id: null,
+                orgFavorites: [],
+                eventFavorites: [],
+                tagFavorites: [],
+            });
+        }
+
         if (!user.orgFavorites) {
             user.orgFavorites = [];
         }
@@ -67,6 +76,16 @@ class User {
 
     async eventFavorites() {
         const user = await this.get();
+
+        if (!user) {
+            await this.set({
+                id: null,
+                orgFavorites: [],
+                eventFavorites: [],
+                tagFavorites: [],
+            });
+        }
+
         if (user && user.eventFavorites) {
             return user.eventFavorites;
         } else {
@@ -100,8 +119,8 @@ class User {
     }
 
     async orgAdmins() {
-        const user = await this.get();
-        if (user) {
+        //const user = await this.get();
+        if (eventhub.getToken()) {
             return await eventhub.getOrgsSelf();
         } else {
             return [];

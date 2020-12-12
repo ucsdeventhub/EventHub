@@ -1,9 +1,6 @@
 import { Component } from "react";
 import { Link } from "react-router-dom";
 import libuser from "../lib/user";
-
-import Event from "./Event";
-
 import eventhub from "../lib/eventhub";
 
 
@@ -27,7 +24,7 @@ class FavoriteItem extends Component {
 
         return (<>
             <h3>
-                <a href={this.props.href}>{this.props.name}</a>
+                <Link to={this.props.href}>{this.props.name}</Link>
             </h3>
             {favorite}
         </>);
