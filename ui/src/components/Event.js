@@ -269,7 +269,7 @@ export default withRouter(class Event extends Component {
                             });
 
                         }}>New Announcement</button>)}
-                    { !this.props.newForOrg && this.state.hasNewAnnouncement && (<input
+                    { !this.props.newForOrg && this.state.hasNewAnnouncement && (<button
                         className="button"
                         type="button"
                         onClick={() => {
@@ -281,7 +281,7 @@ export default withRouter(class Event extends Component {
                                 announcements: a,
                                 hasNewAnnouncement: false,
                             });
-                        }}>Cancel New Announcement</input>)}
+                        }}>Cancel New Announcement</button>)}
 
                     {/* one of these per announcement */}
 
@@ -310,8 +310,8 @@ export default withRouter(class Event extends Component {
         libuser.eventFavorites().then(favorites => {
             if (favorites.includes(this.state.event.id)) {
                 this.setState({
-                    favorited: true,
                     ...this.state,
+                    favorited: true,
                 });
             } else {
                 console.log("removing state favorite");
