@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { withRouter } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 
 import Event from "./Event";
 import eventhub from "../lib/eventhub";
@@ -194,10 +194,10 @@ export default withRouter(class Org extends Component {
                 <div id="org-actions">
                     {favoriteButton}
                     {this.state.editable && (
-                        <a className="button" href={`/orgs/${this.state.id}/edit`}>Edit</a>
+                        <Link className="button" to={`/orgs/${this.state.id}/edit`}>Edit</Link>
                     )}
                     {this.state.editable && (
-                        <a className="button" href={`/orgs/${this.state.id}/new-event`}>New Event</a>
+                        <Link className="button" to={`/orgs/${this.state.id}/new-event`}>New Event</Link>
                     )}
                 </div>
                 <OrgEventList model={this.state} />
