@@ -83,7 +83,7 @@ func userFromRows(rows *sql.Rows) (*models.User, error) {
 	L2:
 
 		if eventID != nil {
-			for _, v := range ret.OrgFavorites {
+			for _, v := range ret.EventFavorites {
 				if v == *eventID {
 					goto L3
 				}
