@@ -87,7 +87,7 @@ class LoginModal extends Component {
                     <label htmlFor="login-otp">One Time Password</label>
                     <input
                         name="login-otp"
-                        type="text"
+                        type="password"
                         value={this.state.value}
                         onChange={(evt) => {
                             this.setState({
