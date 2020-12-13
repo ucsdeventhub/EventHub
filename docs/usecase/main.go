@@ -73,7 +73,7 @@ func (uc *UseCase) GetSection(name string) *Section {
 	return nil
 }
 
-func (uc *UseCase) AddSection(name string, isDesign bool) *Section {
+func (uc *UseCase) AddSection(name string, isNorm, isDesign bool) *Section {
 	for i, v := range uc.Sections {
 		if v.Name == name {
 			log.Printf("duplicate section in %s: %s", uc.Number, name)
@@ -84,6 +84,7 @@ func (uc *UseCase) AddSection(name string, isDesign bool) *Section {
 	uc.Sections = append(uc.Sections, &Section{
 		Name:     name,
 		IsDesign: isDesign,
+		IsNorm:   isNorm,
 		Body:     "",
 	})
 
@@ -93,6 +94,7 @@ func (uc *UseCase) AddSection(name string, isDesign bool) *Section {
 type Section struct {
 	Name     string
 	IsDesign bool
+	IsNorm   bool
 	Body     template.HTML
 }
 
@@ -120,6 +122,12 @@ func (uc *UseCase) FromIssue(issue *github.Issue) *UseCase {
 		"Design Workflow", "Design Alternative Workflow",
 	}
 
+	normSections  := []string{
+		"Description", "User Goal", "Desired Outcome", "Actor",
+		"Dependent Use Cases", "Requirements", "Pre-Conditions",
+		"Post-Conditions", "Trigger", "Workflow", "Alternative Workflow",
+	}
+
 	designSections := []string{
 		"Description", "User Goal", "Desired Outcome", "Actor",
 		"Dependent Use Cases", "Requirements", "Pre-Conditions",
@@ -139,21 +147,32 @@ func (uc *UseCase) FromIssue(issue *github.Issue) *UseCase {
 				bytes.TrimSpace(
 					bytes.Replace(line, []byte("##"), nil, -1)))
 
-			var isValid, isDesign bool
+			var isValid bool
 			for _, v := range validSections {
 				if string(sectionName) == v {
 					isValid = true
+					break
 				}
 			}
 
+			var isDesign bool
 			for _, v := range designSections {
 				if string(sectionName) == v {
 					isDesign = true
+					break
+				}
+			}
+
+			var isNorm bool
+			for _, v := range normSections {
+				if string(sectionName) == v {
+					isNorm = true
+					break
 				}
 			}
 
 			if isValid {
-				section = uc.AddSection(string(sectionName), isDesign)
+				section = uc.AddSection(string(sectionName), isNorm, isDesign)
 			} else {
 				section = nil
 				log.Printf("unknown section name in #%d: %s",
