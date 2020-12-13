@@ -1,4 +1,4 @@
-CHROME ?= chrome
+CHROME ?= ./chrome
 HTML2PDF ?= wkhtmltopdf
 
 DOCUMENTS = requirements.pdf use_cases.pdf design_use_cases.pdf
@@ -7,8 +7,7 @@ DOCUMENTS = requirements.pdf use_cases.pdf design_use_cases.pdf
 all: $(DOCUMENTS)
 
 %.html: %.html.tmpl main.go assets/logo-html.svg
-	go run -mod=mod main.go \
-		-tokenEnv GITHUB_TOKEN \
+	./doc-compiler \
 		-tmpl $< \
 		-logo assets/logo-html.svg > $@
 

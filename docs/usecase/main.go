@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -16,14 +17,12 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/oauth2"
-
 	"github.com/google/go-github/v32/github"
 	markdown "github.com/shurcooL/github_flavored_markdown"
 )
 
-var flagToken = flag.String("token", "", "github auth token")
-var flagTokenEnv = flag.String("tokenEnv", "", "environment var for github auth token, takes precedence over -token")
+//var flagToken = flag.String("token", "", "github auth token")
+//var flagTokenEnv = flag.String("tokenEnv", "", "environment var for github auth token, takes precedence over -token")
 var flagTmpl = flag.String("tmpl", "", "template file")
 var flagLogo = flag.String("logo", "", "logo file")
 
@@ -203,15 +202,17 @@ func main() {
 	flag.Parse()
 	log.SetOutput(os.Stderr)
 
-	if len(*flagTokenEnv) != 0 {
-		*flagToken = os.Getenv(*flagTokenEnv)
-	}
+	/*
+		if len(*flagTokenEnv) != 0 {
+			*flagToken = os.Getenv(*flagTokenEnv)
+		}
 
-	if len(*flagToken) == 0 {
-		fmt.Fprintln(os.Stderr, "token not provided")
-		flag.Usage()
-		os.Exit(1)
-	}
+		if len(*flagToken) == 0 {
+			fmt.Fprintln(os.Stderr, "token not provided")
+			flag.Usage()
+			os.Exit(1)
+		}
+	*/
 
 	if len(*flagTmpl) == 0 {
 		fmt.Fprintln(os.Stderr, "tmpl not provided")
@@ -219,12 +220,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx := context.Background()
+	//ctx := context.Background()
 
-	client := github.NewClient(
+	client := github.NewClient(http.DefaultClient)
+	/*
 		oauth2.NewClient(ctx,
 			oauth2.StaticTokenSource(
 				&oauth2.Token{AccessToken: *flagToken})))
+	*/
 
 	issues, _, err := client.Issues.ListByRepo(context.Background(),
 		"ucsdeventhub",
