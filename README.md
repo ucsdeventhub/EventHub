@@ -7,21 +7,18 @@ The go toolchain is required to run this application. Instrctions to install
 it [here](https://golang.org/doc/install).
 
 
-Optionally, you can install the sqlite3 cli.
+The [sqlite3](https://www.sqlite.org/index.html) cli is also required.
 
 Then to run the server:
-
 ```
 # initialize database
-# ./docs/sql/init.sh test.sqlite3
-# or
-cp docs/sql/schema.sqlite3 db.sqlite3
+./docs/sql/init.sh db.sqlite3
+# run the server
 go run ./cmd/eventhub/main.go
 ```
 
 Optionally the `EVENTHUB_SENDGRID_API_KEY` environment variable can be provided
-to enable the email provider. Otherwise, in dev builds the code `1010` can be
-used in the email verification step.
+to enable the email provider.
 
 ## Testing
 
@@ -30,6 +27,9 @@ simple visual confimation that operations are executed correctly.
 
 ### Testing credentials
 
+The following test credentials will skip the email verification step and
+can be accessed with the hard-coded codes.
+
 There is a hard coded organiztion-associated user in the database and dev
 deployment. The verification code for this user is also hard coded.
 
@@ -37,6 +37,7 @@ For org privileges:
 ```
 email: test-org@ucsd.edu
 code: 1010
+orgID: 1
 ```
 
 For (normal) user privileges:

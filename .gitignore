@@ -1,6 +1,7 @@
 *.env
 .DS_Store
 *.sqlite3
+.swp
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/react

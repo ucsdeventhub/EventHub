@@ -15,6 +15,23 @@ import (
 	"github.com/ucsdeventhub/EventHub/utils"
 )
 
+func isTestAccount(s string) bool {
+	testAccounts := []string{
+		"test-user-fresh@ucsd.edu",
+		"test-org-fresh@ucsd.edu",
+		"test-user@ucsd.edu",
+		"test-org@ucsd.edu",
+	}
+
+	for _, v := range testAccounts {
+		if s == v {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (srv *Provider) Login(w http.ResponseWriter, r *http.Request) {
 
 	if srv.IsProduction {
@@ -103,7 +120,7 @@ func (srv *Provider) Login(w http.ResponseWriter, r *http.Request) {
 				return nil
 			}
 
-			if !srv.IsProduction && (qemail == "test-org@ucsd.edu" || qemail == "test-user@ucsd.edu") {
+			if !srv.IsProduction && isTestAccount(qemail) {
 				NoContent(w)
 				return nil
 			}
@@ -149,7 +166,7 @@ Here's your verification code:
 
 			// dev backdoor
 			log.Println("code: ", qcode)
-			if srv.IsProduction || !(qemail == "test-org@ucsd.edu" || qemail == "test-user@ucsd.edu") {
+			if srv.IsProduction || !(isTestAccount(qemail)) {
 				if code != qcode {
 					Error(w, err, "incorrect code", http.StatusBadRequest)
 					return nil
