@@ -138,7 +138,7 @@ export default class Home extends Component {
         const user = this.state.user;
         return (
             <>
-                { user && user.eventFavorites.length > 0 && (
+                { user && user.eventFavorites && user.eventFavorites.length > 0 && (
                     <>
                         <h2>Favorited Events</h2>
                         <EventSideScroll eventIDs={user.eventFavorites} />
