@@ -149,6 +149,7 @@ export default withRouter(class Header extends Component {
             user,
             showLogin: false,
         });
+        window.location.reload();
     }
 
     loginToggle() {
@@ -169,6 +170,7 @@ export default withRouter(class Header extends Component {
         });
 
         this.props.history.push("/");
+        window.location.reload();
     }
 
     render() {

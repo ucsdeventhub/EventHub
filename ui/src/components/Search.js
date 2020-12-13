@@ -38,7 +38,7 @@ export default class Search extends Component {
         if (this.state.results) {
             results = this.state.results.map((event, i) => {
                 return (
-                    <li key={i} className="event-preview-wide no-scroll-item">
+                    <li key={event.id} className="event-preview-wide no-scroll-item">
                         <Event preview model={{event}} />
                     </li>
                 );
