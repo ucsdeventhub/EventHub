@@ -27,7 +27,7 @@ class Trending extends Component {
 
         const events = this.state.events.map((event, i) => {
             return (
-                <li key={i} className="event-preview-wide no-scroll-item" >
+                <li key={event.id} className="event-preview-wide no-scroll-item" >
                     <Event preview model={{event}} />
                 </li>
             );
@@ -91,7 +91,7 @@ class EventSideScroll extends Component {
 
         const events = this.state.events.map((event, i) => {
             return (
-                <li key={i} className="event-preview-square side-scroll-item">
+                <li key={event.id} className="event-preview-square side-scroll-item">
                     <Event preview model={event} />
                 </li>
             );

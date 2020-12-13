@@ -44,7 +44,7 @@ class OrgEventList extends Component {
         const events = this.state.events.map((evt, i) => {
             console.log("event model", evt);
             return (
-                <li key={i} className="event-preview-wide no-scroll-item">
+                <li key={evt.id} className="event-preview-wide no-scroll-item">
                     <Event preview="wide" model={evt}/>
                 </li>
             )

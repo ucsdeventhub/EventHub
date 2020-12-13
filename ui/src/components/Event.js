@@ -136,7 +136,7 @@ export default withRouter(class Event extends Component {
         let announcements = null;
         if (this.state.announcements) {
             announcements = this.state.announcements.map((a, i) => (
-                <Fragment key={i}>
+                <Fragment key={a.created}>
                     <label
                         className="edit-field"
                         htmlFor={`announcement-${i}`}>{(new Date(a.created)).toString()}</label>

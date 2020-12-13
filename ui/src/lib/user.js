@@ -1,44 +1,36 @@
 import eventhub from "../lib/eventhub";
 
 class User {
-	async get() {
-		let user = JSON.parse(localStorage.getItem("user"));
+    async get() {
 
-		if (!user && eventhub.getToken()) {
-			// todo get user via
-            user = await eventhub.getUsersSelf();
-            localStorage.setItem("user", JSON.stringify(user));
-            console.log("got user: ", user);
-		}
-
-		return user
-	}
-
-	async set(user) {
-		// todo: validation
-		localStorage.setItem("user", JSON.stringify(user));
-
-		// todo set the user via api
-        /* not currently implemented
         if (eventhub.getToken()) {
-            await eventhub.putUsersSelf(user);
+            const user = await eventhub.getUsersSelf();
+            console.log("got user: ", user);
+            return user;
         }
-        */
-	}
 
-	del() {
+        const user = JSON.parse(localStorage.getItem("user"));
+        return user;
+    }
+
+    async set(user) {
+        // todo: validation
+        localStorage.setItem("user", JSON.stringify(user));
+    }
+
+    del() {
         eventhub.delToken();
-		localStorage.removeItem("user");
-	}
+        localStorage.removeItem("user");
+    }
 
-	async orgFavorites() {
-		const user = await this.get();
+    async orgFavorites() {
+        const user = await this.get();
         if (user && user.orgFavorites) {
             return user.orgFavorites;
         } else {
             return [];
         }
-	}
+    }
 
     async addOrgFavorite(orgID) {
         const user = await this.get();
@@ -56,11 +48,13 @@ class User {
         }
 
         user.orgFavorites.push(orgID);
-        await this.set(user);
 
         if (eventhub.getToken()) {
             await eventhub.putUsersOrgs(orgID);
+        } else {
+            await this.set(user);
         }
+
     }
 
     async removeOrgFavorite(orgID) {
@@ -99,11 +93,12 @@ class User {
             user.eventFavorites = [];
         }
 
-        user.eventFavorites.push(eventID);
-        await this.set(user);
 
         if (eventhub.getToken()) {
             await eventhub.putUsersEvents(eventID);
+        } else {
+            user.eventFavorites.push(eventID);
+            await this.set(user);
         }
     }
 
@@ -137,12 +132,12 @@ window.removeUser = () => lib.del();
 window.getUser = () => lib.get();
 /*
 window.setDefaultUser = () => lib.set({
-	id: 1,
-	email: "abc@ucsd.edu",
-	tokenVersion: 1,
-	tagFavorites: ["asd"],
-	orgFavorites: [1, 2],
-	eventFavorites: [1, 2],
+    id: 1,
+    email: "abc@ucsd.edu",
+    tokenVersion: 1,
+    tagFavorites: ["asd"],
+    orgFavorites: [1, 2],
+    eventFavorites: [1, 2],
 });
 */
 
