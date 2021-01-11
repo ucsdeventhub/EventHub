@@ -1,6 +1,9 @@
 # EventHub
 
 
+![screenshot of home page](screenshot1.png)
+![screenshot of search page](screenshot2.png)
+
 ## Running
 
 The go toolchain is required to run this application. Instrctions to install
